@@ -1,0 +1,17 @@
+{
+  "domain": "fresh_intellivent_sky",
+  "name": "Fresh Intellivent Sky",
+  "config_flow": true,
+  "documentation": "https://github.com/Spit68/Fresh-Intellivent-Sky",
+  "codeowners": ["@Spit68"],
+  "iot_class": "local_polling",
+  "dependencies": ["bluetooth"],
+  "bluetooth": [
+    {
+      "connectable": true,
+      "local_name": "Intellivent SKY",
+      "service_uuid": "0000180a-0000-1000-8000-00805f9b34fb"
+    }],
+  "issue_tracker": "https://github.com/Spit68/Fresh-Intellivent-Sky/issues",
+  "version": "0.6.0"
+}
