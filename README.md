@@ -77,6 +77,23 @@ During setup, Home Assistant offers three authentication options:
 
 To place the fan in pairing mode, press and hold the power and Wi-Fi buttons for approximately eight seconds until the fan starts flashing. Then select the option to fetch the key.
 
+## Migrating from freshintelliventHacs
+
+> [!WARNING]
+> If you already have [freshintelliventHacs](https://github.com/angoyd/freshintelliventHacs) installed, remove it before installing this integration.
+>
+> Both integrations use the same Home Assistant domain and the same folder: `custom_components/fresh_intellivent_sky`. Installing them at the same time can result in mixed or outdated files.
+
+To migrate safely:
+
+1. Remove the old **Fresh Intellivent Sky** integration from **Settings → Devices & services**.
+2. Remove `freshintelliventHacs` from HACS.
+3. Confirm that `custom_components/fresh_intellivent_sky` has been removed. If the folder remains, remove it manually.
+4. Restart Home Assistant.
+5. Install this integration using the instructions below.
+6. Restart Home Assistant again.
+7. Add **Fresh Intellivent Sky** from **Settings → Devices & services**.
+
 ## Installation
 
 ### Manual install via HACS
