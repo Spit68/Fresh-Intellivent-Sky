@@ -24,6 +24,8 @@ from .const import (
     DETECTION_KEY,
     HUMIDITY_MODE_UPDATE,
     LIGHT_AND_VOC_MODE_UPDATE,
+    NIGHT_MODE,
+    SILENT_HOURS,
 )
 
 async def async_setup_entry(
@@ -85,6 +87,18 @@ async def async_setup_entry(
             FreshIntelliventDebugLoggingSwitch(
                 coordinator,
                 coordinator.data,
+            ),
+            FreshIntelliventScheduledModeSwitch(
+                coordinator,
+                coordinator.data,
+                mode=NIGHT_MODE,
+                icon="mdi:weather-night",
+            ),
+            FreshIntelliventScheduledModeSwitch(
+                coordinator,
+                coordinator.data,
+                mode=SILENT_HOURS,
+                icon="mdi:volume-off",
             ),
         ]
     )
@@ -239,6 +253,59 @@ class FreshIntelliventKeepConnectionSwitch(
     async def async_turn_off(self, **kwargs) -> None:
         """Disable Keep Connection."""
         await self.coordinator.async_set_keep_connection(False)
+        self.async_write_ha_state()
+
+
+class FreshIntelliventScheduledModeSwitch(
+    CoordinatorEntity[DataUpdateCoordinator[Any]], SwitchEntity
+):
+    """Enable or disable a scheduled RPM mode for one SKY."""
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        device: FreshIntelliVent,
+        mode: str,
+        icon: str,
+    ) -> None:
+        """Initialize a scheduled RPM mode switch."""
+        super().__init__(coordinator)
+
+        name = f"{device.manufacturer} {device.name}"
+
+        self._mode = mode
+        self._attr_translation_key = mode
+        self._attr_icon = icon
+        self._attr_unique_id = f"{device.manufacturer}_{name}_{mode}"
+        self._attr_device_info = DeviceInfo(
+            connections={
+                (
+                    CONNECTION_BLUETOOTH,
+                    device.address,
+                )
+            },
+            name=name,
+            manufacturer=device.manufacturer,
+            hw_version=device.hw_version,
+            sw_version=device.sw_version,
+        )
+
+    @property
+    def is_on(self) -> bool:
+        """Return whether the scheduled RPM mode is enabled."""
+        return self.coordinator.scheduled_modes[self._mode]["enabled"]
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Enable the scheduled RPM mode."""
+        await self.coordinator.async_set_scheduled_mode_enabled(self._mode, True)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Disable the scheduled RPM mode."""
+        await self.coordinator.async_set_scheduled_mode_enabled(self._mode, False)
         self.async_write_ha_state()
 
 

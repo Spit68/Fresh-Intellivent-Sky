@@ -32,9 +32,12 @@ from .const import (
     DOMAIN,
     ENABLED_KEY,
     HUMIDITY_MODE_UPDATE,
+    MAX_RPM_KEY,
     MINUTES_KEY,
+    NIGHT_MODE,
     PAUSE_UPDATE,
     RPM_KEY,
+    SILENT_HOURS,
     TIMER_MODE_UPDATE,
     VOC_MODE_UPDATE,
 )
@@ -207,6 +210,34 @@ async def async_setup_entry(
                 coordinator,
                 coordinator.data,
                 NumberEntityDescription(
+                    key="night_mode_max_rpm",
+                    translation_key="night_mode_max_rpm",
+                    native_min_value=850,
+                    native_max_value=2400,
+                    native_step=1,
+                    native_unit_of_measurement=REVOLUTIONS_PER_MINUTE,
+                ),
+                entity_category=EntityCategory.CONFIG,
+                keys=None,
+            ),
+            FreshIntelliventSkyNumber(
+                coordinator,
+                coordinator.data,
+                NumberEntityDescription(
+                    key="silent_hours_max_rpm",
+                    translation_key="silent_hours_max_rpm",
+                    native_min_value=850,
+                    native_max_value=2400,
+                    native_step=1,
+                    native_unit_of_measurement=REVOLUTIONS_PER_MINUTE,
+                ),
+                entity_category=EntityCategory.CONFIG,
+                keys=None,
+            ),
+            FreshIntelliventSkyNumber(
+                coordinator,
+                coordinator.data,
+                NumberEntityDescription(
                     key="poll_interval",
                     translation_key="poll_interval",
                     native_min_value=10,
@@ -274,19 +305,25 @@ class FreshIntelliventSkyNumber(
             sw_version=device.sw_version,
         )
         if entity_description.key == "boost_minutes":
-            self._boost_duration = 15
+            self._boost_duration = int(
+                getattr(self.coordinator, "boost_minutes", 15)
+            )
             self.coordinator.boost_minutes = self._boost_duration
         else:
             self._boost_duration = None
 
         if entity_description.key == "boost_rpm":
-            self._boost_rpm = 2400
+            self._boost_rpm = int(
+                getattr(self.coordinator, "boost_rpm", 2400)
+            )
             self.coordinator.boost_rpm = self._boost_rpm
         else:
             self._boost_rpm = None
 
         if entity_description.key == "pause_minutes":
-            self._pause_duration = 15
+            self._pause_duration = int(
+                getattr(self.coordinator, "pause_minutes", 15)
+            )
             self.coordinator.pause_minutes = self._pause_duration
         else:
             self._pause_duration = None
@@ -305,6 +342,12 @@ class FreshIntelliventSkyNumber(
 
         if self.entity_description.key == "poll_interval":
             return self.coordinator.poll_interval
+
+        if self.entity_description.key == "night_mode_max_rpm":
+            return self.coordinator.scheduled_modes[NIGHT_MODE][MAX_RPM_KEY]
+
+        if self.entity_description.key == "silent_hours_max_rpm":
+            return self.coordinator.scheduled_modes[SILENT_HOURS][MAX_RPM_KEY]
 
         if self._keys is None:
             return None
@@ -454,6 +497,22 @@ class FreshIntelliventSkyNumber(
 
         elif key == "poll_interval":
             await self.coordinator.async_set_poll_interval(int(value))
+            self.async_write_ha_state()
+            return
+
+        elif key == "night_mode_max_rpm":
+            await self.coordinator.async_set_scheduled_mode_max_rpm(
+                NIGHT_MODE,
+                int(value),
+            )
+            self.async_write_ha_state()
+            return
+
+        elif key == "silent_hours_max_rpm":
+            await self.coordinator.async_set_scheduled_mode_max_rpm(
+                SILENT_HOURS,
+                int(value),
+            )
             self.async_write_ha_state()
             return
 

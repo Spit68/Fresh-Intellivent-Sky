@@ -104,6 +104,12 @@
       },
       "timer_delay_minutes": {
         "name": "Forsinkelse for ekstern indgang"
+      },
+      "night_mode_max_rpm": {
+        "name": "Maks. hastighed for nattilstand"
+      },
+      "silent_hours_max_rpm": {
+        "name": "Maks. hastighed for stille timer"
       }
     },
     "select": {
@@ -194,6 +200,26 @@
       },
       "debug_logs": {
         "name": "Debug logs"
+      },
+      "night_mode": {
+        "name": "Nattilstand"
+      },
+      "silent_hours": {
+        "name": "Stille timer"
+      }
+    },
+    "time": {
+      "night_mode_start_time": {
+        "name": "Starttid for nattilstand"
+      },
+      "night_mode_end_time": {
+        "name": "Sluttid for nattilstand"
+      },
+      "silent_hours_start_time": {
+        "name": "Starttid for stille timer"
+      },
+      "silent_hours_end_time": {
+        "name": "Sluttid for stille timer"
       }
     }
   }

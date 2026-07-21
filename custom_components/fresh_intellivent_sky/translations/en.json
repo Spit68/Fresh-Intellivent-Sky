@@ -104,6 +104,12 @@
       },
       "timer_delay_minutes": {
         "name": "External Input Delay Time"
+      },
+      "night_mode_max_rpm": {
+        "name": "Night Mode Maximum Speed"
+      },
+      "silent_hours_max_rpm": {
+        "name": "Silent Hours Maximum Speed"
       }
     },
     "select": {
@@ -194,6 +200,26 @@
       },
       "debug_logs": {
         "name": "Debug logs"
+      },
+      "night_mode": {
+        "name": "Night Mode"
+      },
+      "silent_hours": {
+        "name": "Silent Hours"
+      }
+    },
+    "time": {
+      "night_mode_start_time": {
+        "name": "Night Mode Start Time"
+      },
+      "night_mode_end_time": {
+        "name": "Night Mode End Time"
+      },
+      "silent_hours_start_time": {
+        "name": "Silent Hours Start Time"
+      },
+      "silent_hours_end_time": {
+        "name": "Silent Hours End Time"
       }
     }
   }
