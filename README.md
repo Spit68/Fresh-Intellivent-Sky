@@ -18,6 +18,8 @@ This integration combines the Home Assistant integration from `freshintelliventH
 - Support for different SKY firmware generations
 - Batched setting writes with readback
 - Boost and Pause controls with local countdown sensors
+- Home Assistant-managed Night Mode and Silent Hours
+- Scheduled maximum RPM limits with automatic restoration of normal settings
 - Copy settings between two SKY devices
 - Per-device diagnostic debug logging
 - Danish and English translations
@@ -57,6 +59,8 @@ Additional raw sensor values are available as disabled-by-default diagnostic ent
 | External input | Delay time |
 | Boost | Start, cancel, duration and RPM |
 | Pause | Start, cancel and duration |
+| Night Mode | Enable/disable, start time, end time and maximum RPM |
+| Silent Hours | Enable/disable, start time, end time and maximum RPM |
 | Integration | Poll interval, Keep Connection and Debug logs |
 
 ## Firmware support
@@ -135,6 +139,29 @@ The normal polling interval can be configured from the device settings.
 When **Keep Connection** is disabled, the integration connects to the fan when required and disconnects after polling, writing, and reading settings.
 
 When **Keep Connection** is enabled, the BLE connection is kept open and live values are refreshed every second. Persistent mode can provide faster updates, but it may use more Bluetooth resources.
+
+## Night Mode and Silent Hours
+
+Night Mode and Silent Hours provide scheduled RPM limits managed entirely by Home Assistant. Each mode can be enabled and configured separately for every SKY device with a start time, end time, and maximum RPM.
+
+When a scheduled mode starts, the integration saves the fan's normal RPM settings and temporarily limits settings that are higher than the configured maximum. Settings already below the limit remain unchanged and are never increased.
+
+For example, with a maximum of `1200 RPM`:
+
+- A normal setting of `850 RPM` remains at `850 RPM`.
+- A normal setting of `1100 RPM` remains at `1100 RPM`.
+- A normal setting of `1800 RPM` is temporarily limited to `1200 RPM`.
+
+When the scheduled mode ends, the original RPM settings are restored automatically.
+
+The two schedules may overlap. While both are active, the lowest configured maximum RPM is used. The original settings are restored only after the last active schedule has ended.
+
+Schedules, enabled states, RPM limits, and saved normal RPM values are stored by Home Assistant and survive integration reloads and Home Assistant restarts. Time ranges that pass midnight, such as `22:00–07:00`, are supported.
+
+> [!IMPORTANT]
+> Night Mode and Silent Hours are integration features and are not stored in the fan itself. Home Assistant must be running and able to reach the fan through Bluetooth when settings need to be changed. If Home Assistant was unavailable at a scheduled transition, the integration evaluates the current schedule and applies or restores the appropriate settings when it starts again.
+
+Manually changing an RPM setting while a scheduled mode is active overrides that setting. When the final active schedule ends, the RPM values saved before the scheduled period are restored.
 
 ## Copy settings between devices
 
