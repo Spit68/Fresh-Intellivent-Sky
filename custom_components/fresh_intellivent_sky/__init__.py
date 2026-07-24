@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from copy import deepcopy
-from datetime import datetime, time, timedelta
+from datetime import datetime, time as dt_time, timedelta
 
 from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
@@ -145,8 +145,8 @@ async def async_setup_entry(
 
     def _mode_from_storage(
         mode: str,
-        default_start: time,
-        default_end: time,
+        default_start: dt_time,
+        default_end: dt_time,
         default_rpm: int,
     ) -> dict:
         """Build one scheduled mode from stored values and defaults."""
@@ -158,12 +158,12 @@ async def async_setup_entry(
         end_value = stored_mode.get(END_TIME_KEY)
 
         try:
-            start_time = time.fromisoformat(start_value)
+            start_time = dt_time.fromisoformat(start_value)
         except (TypeError, ValueError):
             start_time = default_start
 
         try:
-            end_time = time.fromisoformat(end_value)
+            end_time = dt_time.fromisoformat(end_value)
         except (TypeError, ValueError):
             end_time = default_end
 
@@ -358,14 +358,14 @@ async def async_setup_entry(
     coordinator.scheduled_modes = {
         NIGHT_MODE: _mode_from_storage(
             NIGHT_MODE,
-            time(22, 0),
-            time(7, 0),
+            dt_time(22, 0),
+            dt_time(7, 0),
             1200,
         ),
         SILENT_HOURS: _mode_from_storage(
             SILENT_HOURS,
-            time(23, 0),
-            time(6, 0),
+            dt_time(23, 0),
+            dt_time(6, 0),
             1000,
         ),
     }
@@ -460,7 +460,11 @@ async def async_setup_entry(
             }
         )
 
-    def _time_is_active(now: time, start: time, end: time) -> bool:
+    def _time_is_active(
+        now: dt_time,
+        start: dt_time,
+        end: dt_time,
+    ) -> bool:
         """Return whether now is inside a scheduled time range."""
         if start == end:
             return False
@@ -595,7 +599,7 @@ async def async_setup_entry(
     async def _async_set_scheduled_mode_time(
         mode: str,
         time_key: str,
-        value: time,
+        value: dt_time,
     ) -> None:
         """Set a start or end time for one scheduled mode."""
         coordinator.scheduled_modes[mode][time_key] = value
