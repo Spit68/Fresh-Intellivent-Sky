@@ -166,6 +166,29 @@
       "error": {
         "name": "Fejl"
       },
+      "sw_version": {
+        "name": "Firmware version"
+      },
+      "hw_version": {
+        "name": "Hardware version"
+      },	  
+      "rssi": {
+        "name": "Bluetooth signalstyrke"
+      },
+      "bluetooth_source": {
+        "name": "Bluetooth kilde"
+      },
+      "connection_status": {
+        "name": "Forbindelsesstatus",
+        "state": {
+          "disconnected": "Afbrudt",
+          "connecting": "Forbinder",
+          "connected": "Forbundet"
+        }
+      },	  
+      "last_successful_update": {
+        "name": "Sidste opdatering"
+      },	  
       "rpm": {
         "name": "Aktuel hastighed"
       },

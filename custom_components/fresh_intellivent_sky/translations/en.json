@@ -166,6 +166,29 @@
       "error": {
         "name": "Error"
       },
+      "sw_version": {
+        "name": "Firmware Version"
+      },
+      "hw_version": {
+        "name": "Hardware Version"
+      },	 
+      "rssi": {
+        "name": "Bluetooth Signal Strength"
+      },
+      "bluetooth_source": {
+        "name": "Bluetooth Source"
+      },	
+      "connection_status": {
+        "name": "Connection Status",
+        "state": {
+          "disconnected": "Disconnected",
+          "connecting": "Connecting",
+          "connected": "Connected"
+        }
+      },	  
+      "last_successful_update": {
+        "name": "Last Update"
+      },	  
       "rpm": {
         "name": "Current Speed"
       },
