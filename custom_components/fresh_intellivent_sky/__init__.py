@@ -181,6 +181,14 @@ async def async_setup_entry(
         }
 
     device_information_loaded = False
+    
+    def _set_connection_status(status: str) -> None:
+        """Update and immediately publish the BLE connection status."""
+        if getattr(coordinator, "connection_status", None) == status:
+            return
+
+        coordinator.connection_status = status
+        coordinator.async_update_listeners()    
 
     async def _connect_and_authenticate(
         *,
@@ -200,9 +208,18 @@ async def async_setup_entry(
             device_information_loaded = False
 
         if client.is_connected:
+            _set_connection_status("connected")
             return
 
-        await client.connect(timeout=TIMEOUT)
+        _set_connection_status("connecting")
+
+        try:
+            await client.connect(timeout=TIMEOUT)
+        except Exception:
+            _set_connection_status("disconnected")
+            raise
+
+        _set_connection_status("connected")
 
         if auth_key is not None:
             await client.authenticate(authentication_code=auth_key)
@@ -232,6 +249,16 @@ async def async_setup_entry(
 
         await _connect_and_authenticate()
         await client.fetch_sensor_data()
+        
+        service_info = bluetooth.async_last_service_info(
+            hass,
+            address,
+            connectable=True,
+        )
+
+        if service_info is not None:
+            coordinator.rssi = service_info.rssi
+            coordinator.bluetooth_source = service_info.source        
 
         if coordinator.debug_logging:
             sensors = client.sensors
@@ -240,6 +267,8 @@ async def async_setup_entry(
                 "hw_version=%s "
                 "fw_version=%s "
                 "ble_address=%s "
+                "rssi=%s "
+                "bluetooth_source=%s "                
                 "raw_ble_payload=%s "
                 "flags=%s "
                 "active_trigger=%s "
@@ -255,6 +284,8 @@ async def async_setup_entry(
                 coordinator.hw_version,
                 coordinator.sw_version,
                 coordinator.ble_address,
+                coordinator.rssi,
+                coordinator.bluetooth_source,                
                 sensors.raw_ble_payload,
                 sensors.flags,
                 sensors.active_trigger,
@@ -285,6 +316,8 @@ async def async_setup_entry(
 
         if settings_refresh_needed:
             coordinator.settings_refresh_needed = False
+            
+        coordinator.last_successful_update = dt_util.utcnow()            
 
         return client
 
@@ -309,7 +342,13 @@ async def async_setup_entry(
                         exc_info=True,
                     )
 
-                    await client.disconnect()
+                    try:
+                        await client.disconnect()
+                    finally:
+                        _set_connection_status(
+                            "connected" if client.is_connected else "disconnected"
+                        )
+
                     await _connect_and_authenticate(
                         reset_device_information=True
                     )
@@ -322,12 +361,16 @@ async def async_setup_entry(
                 if not coordinator.keep_connection:
                     try:
                         await client.disconnect()
-                    except Exception as err: 
+                    except Exception as err:
                         _LOGGER.error(
                             "Couldn't disconnect from %s: %s",
                             address,
                             err,
                         )
+
+                    _set_connection_status(
+                        "connected" if client.is_connected else "disconnected"
+                    )
 
     coordinator = DataUpdateCoordinator(
         hass,
@@ -345,6 +388,10 @@ async def async_setup_entry(
     coordinator.hw_version = getattr(client, "hw_version", None)
     coordinator.sw_version = getattr(client, "sw_version", None)
     coordinator.ble_address = address
+    coordinator.rssi = None
+    coordinator.bluetooth_source = None
+    coordinator.last_successful_update = None 
+    coordinator.connection_status = "disconnected"    
     coordinator.settings_refresh_needed = True
     coordinator.old_software_version = False
     coordinator.copy_in_progress = False
@@ -424,7 +471,12 @@ async def async_setup_entry(
             coordinator.update_interval = timedelta(
                 seconds=coordinator.poll_interval
             )
-            await client.disconnect()
+            try:
+                await client.disconnect()
+            finally:
+                _set_connection_status(
+                    "connected" if client.is_connected else "disconnected"
+                )
 
         await coordinator.async_request_refresh()
 

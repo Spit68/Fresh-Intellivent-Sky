@@ -28,6 +28,7 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
+from homeassistant.util import dt as dt_util
 
 from .const import BOOST_REMAINING_KEY, DOMAIN, PAUSE_REMAINING_KEY
 
@@ -122,6 +123,64 @@ async def async_setup_entry(
                 ),
                 EntityCategory.DIAGNOSTIC,
             ),
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="sw_version",
+                    translation_key="sw_version",
+                    entity_registry_enabled_default=False,
+                ),
+                EntityCategory.DIAGNOSTIC,
+            ),
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="hw_version",
+                    translation_key="hw_version",
+                    entity_registry_enabled_default=False,
+                ),
+                EntityCategory.DIAGNOSTIC,
+            ),
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="rssi",
+                    translation_key="rssi",
+                    native_unit_of_measurement="dBm",
+                    state_class=SensorStateClass.MEASUREMENT,
+                ),
+                EntityCategory.DIAGNOSTIC,
+            ),
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="bluetooth_source",
+                    translation_key="bluetooth_source",
+                ),
+                EntityCategory.DIAGNOSTIC,
+            ),
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="connection_status",
+                    translation_key="connection_status",
+                ),
+                EntityCategory.DIAGNOSTIC,
+            ),            
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="last_successful_update",
+                    translation_key="last_successful_update",
+                ),
+                EntityCategory.DIAGNOSTIC,
+            ),            
             FreshIntelliventSkySensor(
                 coordinator,
                 coordinator.data,
@@ -333,6 +392,28 @@ class FreshIntelliventSkySensor(
 
         if self.entity_description.key == PAUSE_REMAINING_KEY:
             return self._pause_remaining
+
+        if self.entity_description.key == "sw_version":
+            return self.coordinator.data.sw_version
+
+        if self.entity_description.key == "hw_version":
+            return self.coordinator.data.hw_version
+            
+        if self.entity_description.key == "rssi":
+            return self.coordinator.rssi
+
+        if self.entity_description.key == "bluetooth_source":
+            return self.coordinator.bluetooth_source  
+
+        if self.entity_description.key == "connection_status":
+            return self.coordinator.connection_status            
+
+        if self.entity_description.key == "last_successful_update":
+            if self.coordinator.last_successful_update is None:
+                return None
+            return dt_util.as_local(
+                self.coordinator.last_successful_update
+            ).strftime("%d-%m-%Y %H:%M:%S")         
 
         return self.coordinator.data.sensors.as_dict()[
             self.entity_description.key
