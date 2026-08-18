@@ -45,7 +45,18 @@ The entities available depend on the firmware version and whether the integratio
 | Pause remaining time | Local countdown for an active Pause |
 | Error | Error value reported by the fan |
 
-Additional raw sensor values are available as disabled-by-default diagnostic entities. They can be enabled manually from the entity settings.
+### Diagnostic entities
+
+Additional diagnostic entities provide information about the fan and its current Bluetooth connection:
+
+| Entity | Description |
+| --- | --- |
+| Firmware | Firmware/software version reported by the fan |
+| Hardware | Hardware version reported by the fan |
+| RSSI | Current Bluetooth signal strength in dBm |
+| Bluetooth Source | Bluetooth adapter or proxy currently used to communicate with the fan |
+| Connection Status | Current BLE connection state: Disconnected, Connecting or Connected |
+| Last Update | Date and time of the last successful update |
 
 ### Settings and controls
 
@@ -181,6 +192,7 @@ When enabled, the integration logs detailed information for that device, includi
 
 - Hardware and software versions
 - BLE address
+- RSSI and Bluetooth source when available
 - Raw BLE status payload
 - Flags, active trigger and motor speed
 - Raw humidity, VOC and light values
