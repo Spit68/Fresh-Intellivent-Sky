@@ -22,7 +22,7 @@ This integration combines the Home Assistant integration from `freshintelliventH
 - Scheduled maximum RPM limits with automatic restoration of normal settings
 - Copy settings between two SKY devices
 - Per-device diagnostic debug logging
-- Danish and English translations
+- Danish, Swedish and English translations
 
 ## Requirements
 
