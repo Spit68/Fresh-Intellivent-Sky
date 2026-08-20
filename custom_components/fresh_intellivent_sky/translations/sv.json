@@ -1,0 +1,249 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "description": "Välj en Fresh Intellivent SKY-enhet."
+      },
+      "auth_method": {
+        "description": "En autentiseringsnyckel krävs för att ändra inställningar. Utan nyckel kan integrationen endast läsa värden.",
+        "menu_options": {
+          "auth_fetch": "Hämta nyckeln från fläkten",
+          "auth_manual": "Ange nyckeln manuellt",
+          "no_auth": "Ingen autentisering (endast läsning)"
+        }
+      },
+      "auth_manual": {
+        "description": "Ange autentiseringsnyckeln för {name}.",
+        "data": {
+          "auth_key": "Autentiseringsnyckel"
+        }
+      },
+      "auth_fetch": {
+        "description": "Håll inne på/av- och Wi-Fi-knapparna på fläkten i 8 sekunder tills de börjar blinka. Välj därefter Nästa."
+      },
+      "bluetooth_confirm": {
+        "description": "Konfigurera {name}?"
+      }
+    },
+    "abort": {
+      "no_devices_found": "Kunde inte hitta någon Fresh Intellivent SKY-enhet.",
+      "already_in_progress": "Konfigurationen har redan startats.",
+      "already_configured": "Denna enhet är redan konfigurerad.",
+      "cannot_connect": "Kunde inte ansluta till fläkten.",
+      "unknown": "Okänt fel."
+    },
+    "error": {
+      "auth_code_only_zero": "Fläkten returnerade en autentiseringsnyckel som enbart innehåller nollor. Kontrollera att fläkten är i parningsläge.",
+      "auth_code_empty": "Fläkten returnerade en tom autentiseringsnyckel. Kontrollera att fläkten är i parningsläge och inom bluetooth-räckvidd.",
+      "invalid_auth_key": "Ogiltig autentiseringsnyckel."
+    }
+  },
+  "exceptions": {
+    "copy_same_device": {
+      "message": "Källa och destination kan inte vara samma Fresh Intellivent SKY-enhet."
+    },
+	"copy_devices_not_selected": {
+      "message": "Välj både en källa och en destination."
+    }
+  },
+  "entity": {
+    "button": {
+      "start_boost": {
+        "name": "Starta boost"
+      },
+      "cancel_boost": {
+        "name": "Avsluta boost"
+      },
+      "start_pause": {
+        "name": "Starta paus"
+      },
+      "cancel_pause": {
+        "name": "Avsluta paus"
+      },
+	  "duplicate_settings": {
+        "name": "Kopiera inställningar"
+      }
+    },
+    "number": {
+      "humidity_rpm": {
+        "name": "Luftfuktighet - Hastighet"
+      },
+      "voc_rpm": {
+        "name": "Luftkvalitet - Hastighet"
+      },
+	  "humidity_voc_rpm": {
+        "name": "Luftfuktighet och luftkvalitet - Hastighet"
+      },
+      "constant_speed_rpm": {
+        "name": "Konstantdrift - Hastighet"
+      },
+      "airing_rpm": {
+        "name": "Vädring - Hastighet"
+      },
+      "boost_rpm": {
+        "name": "Boost - Hastighet"
+      },
+      "airing_minutes": {
+        "name": "Vädring - Tid"
+      },
+      "boost_minutes": {
+        "name": "Boost - Tid"
+      },
+      "pause_minutes": {
+        "name": "Paus - Tid"
+      },
+      "timer_and_light_rpm": {
+        "name": "Ljussensor - Hastighet"
+      },
+      "timer_minutes": {
+        "name": "Ljussensor - Tid"
+      },
+      "poll_interval": {
+        "name": "Uppdateringsfrekvens"
+      },
+      "timer_delay_minutes": {
+        "name": "Fördröjning med extern ingång"
+      },
+      "night_mode_max_rpm": {
+        "name": "Nattläge - Högsta hastighet"
+      },
+      "silent_hours_max_rpm": {
+        "name": "Tyst läge - Högsta hastighet"
+      }
+    },
+    "select": {
+      "humidity_detection": {
+        "name": "Luftfuktighetssensor",
+        "state": {
+          "Low": "Låg",
+          "Medium": "Medium",
+          "High": "Hög"
+        }
+      },
+      "light_detection": {
+        "name": "Ljussensor",
+        "state": {
+          "Low": "Låg",
+          "Medium": "Medium",
+          "High": "Hög"
+        }
+      },
+      "voc_detection": {
+        "name": "Luftkvalitetssensor",
+        "state": {
+          "Low": "Låg",
+          "Medium": "Medium",
+          "High": "Hög"
+        }
+      },
+	  "copy_from_device": {
+        "name": "Kopiera från enhet"
+      },
+      "copy_to_device": {
+        "name": "Kopiera till enhet"
+      }
+    },
+    "sensor": {
+      "temperature": {
+        "name": "Temperatur"
+      },
+      "humidity_raw": {
+        "name": "Luftfuktighet (rådata)"
+      },
+      "voc_raw": {
+        "name": "Luftkvalitet (rådata)"
+      },
+      "light_raw": {
+        "name": "Ljussensor (rådata)"
+      },
+      "reference_raw": {
+        "name": "Referens (rådata)"
+      },
+      "minimum_active": {
+        "name": "Minimum aktiv"
+      },
+      "error": {
+        "name": "Fel"
+      },
+      "sw_version": {
+        "name": "Firmwareversion"
+      },
+      "hw_version": {
+        "name": "Hårdvaruversion"
+      },	 
+      "rssi": {
+        "name": "Bluetooth-signalstyrka"
+      },
+      "bluetooth_source": {
+        "name": "Bluetoothkälla"
+      },	
+      "connection_status": {
+        "name": "Anslutningsstatus",
+        "state": {
+          "disconnected": "Nedkopplad",
+          "connecting": "Ansluter",
+          "connected": "Ansluten"
+        }
+      },	  
+      "last_successful_update": {
+        "name": "Senaste uppdatering"
+      },	  
+      "rpm": {
+        "name": "Hastighet"
+      },
+      "mode": {
+        "name": "Läge"
+      },
+      "mode_raw": {
+        "name": "Läge (rådata)"
+      },
+      "boost_remaining": {
+        "name": "Boost - Återstående tid"
+      },
+      "pause_remaining": {
+        "name": "Paus - Återstående tid"
+      }
+    },
+    "switch": {
+      "constant_speed_enabled": {
+        "name": "Konstantdrift"
+      },
+      "humidity_detection_enabled": {
+        "name": "Fuktstyrning"
+      },
+      "light_detection_enabled": {
+        "name": "Ljusstyrning"
+      },
+      "voc_detection_enabled": {
+        "name": "Luftkvalitetsstyrning"
+      },
+      "keep_connection": {
+        "name": "Upprätthåll anslutningen"
+      },
+      "debug_logs": {
+        "name": "Debugloggar"
+      },
+      "night_mode": {
+        "name": "Nattläge"
+      },
+      "silent_hours": {
+        "name": "Tyst läge"
+      }
+    },
+    "time": {
+      "night_mode_start_time": {
+        "name": "Nattläge - Starttid"
+      },
+      "night_mode_end_time": {
+        "name": "Nattläge - Sluttid"
+      },
+      "silent_hours_start_time": {
+        "name": "Tyst läge - Starttid"
+      },
+      "silent_hours_end_time": {
+        "name": "Tyst läge - Sluttid"
+      }
+    }
+  }
+}
