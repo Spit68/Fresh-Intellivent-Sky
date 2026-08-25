@@ -1,6 +1,6 @@
-# Fresh Intellivent Sky for Home Assistant
+# Fresh Intellivent Sky/Ice for Home Assistant
 
-A standalone Home Assistant integration for **Fresh Intellivent SKY** bathroom fans using Bluetooth Low Energy.
+A standalone Home Assistant integration for **Fresh Intellivent SKY** and **Intellivent ICE** bathroom fans using Bluetooth Low Energy.
 
 This integration combines the Home Assistant integration from `freshintelliventHacs` with the BLE communication code from `pyfreshintellivent`. The combined codebase no longer depends on the external Python library and has been extensively expanded with additional controls, diagnostics, firmware handling, connection management, and multi-device settings duplication.
 
@@ -10,17 +10,19 @@ This integration combines the Home Assistant integration from `freshintelliventH
 ## Features
 
 - Native Home Assistant Bluetooth discovery
+- Support for Fresh Intellivent SKY and Intellivent ICE
 - Authentication key setup through the Home Assistant UI
 - Read-only installation without an authentication key
 - Configurable polling interval
 - Optional persistent BLE connection for faster updates
 - Automatic reconnect and retry when a persistent connection fails
-- Support for different SKY firmware generations
+- Support for different firmware generations
 - Batched setting writes with readback
 - Boost and Pause controls with local countdown sensors
 - Home Assistant-managed Night Mode and Silent Hours
 - Scheduled maximum RPM limits with automatic restoration of normal settings
-- Copy settings between two SKY devices
+- Copy settings between two supported devices
+- Estimated airflow in m³/h based on fan speed and installation configuration
 - Per-device diagnostic debug logging
 - Danish, Swedish and English translations
 
@@ -28,7 +30,7 @@ This integration combines the Home Assistant integration from `freshintelliventH
 
 - Home Assistant 2026.1.0 or newer
 - Bluetooth access from Home Assistant or a compatible Bluetooth proxy
-- A Fresh Intellivent SKY fan
+- A Fresh Intellivent SKY or Intellivent ICE fan
 
 ## Available entities
 
@@ -40,23 +42,45 @@ The entities available depend on the firmware version and whether the integratio
 | --- | --- |
 | Temperature | Current temperature reported by the fan |
 | Current speed | Current fan speed in RPM |
+| Estimated airflow | Estimated airflow in m³/h based on the current fan speed and the configured duct size and front type |
 | Mode | Current operating mode |
 | Boost remaining time | Local countdown for an active Boost |
 | Pause remaining time | Local countdown for an active Pause |
-| Error | Error value reported by the fan |
+| Error | Error value reported by the fan as text |
+
+### Estimated airflow
+
+The **Estimated airflow** sensor shows the approximate current airflow in **m³/h**.
+
+The value is calculated from the fan's current RPM using Fresh's airflow/performance data for the selected installation:
+
+- Duct size: **Ø100 mm** or **Ø125 mm**
+- Front type: **Standard** or **Design**
+
+For example, a value of **75 m³/h** means that the fan is estimated to move approximately 75 cubic metres of air per hour at its current speed and installation configuration.
+
+The airflow value is an estimate based on the fan's performance data and is **not a direct airflow measurement from the fan**.
 
 ### Diagnostic entities
 
-Additional diagnostic entities provide information about the fan and its current Bluetooth connection:
+Additional diagnostic entities provide information about the fan, raw sensor data, and its current Bluetooth connection:
 
 | Entity | Description |
 | --- | --- |
-| Firmware | Firmware/software version reported by the fan |
-| Hardware | Hardware version reported by the fan |
-| RSSI | Current Bluetooth signal strength in dBm |
 | Bluetooth Source | Bluetooth adapter or proxy currently used to communicate with the fan |
+| RSSI | Current Bluetooth signal strength in dBm |
+| Debug logs | Enable detailed diagnostic logging for the device |
+| Error | Raw error value reported by the fan |
+| Firmware Version | Firmware version reported by the fan |
 | Connection Status | Current BLE connection state: Disconnected, Connecting or Connected |
+| Humidity Sensor Raw | Raw humidity sensor value |
+| Hardware Version | Hardware version reported by the fan |
+| Light Sensor Raw | Raw light sensor value |
+| Minimum Active | Raw minimum-active value reported by the fan |
+| Reference Raw | Raw reference value reported by the fan |
+| Raw State | Raw operating state value reported by the fan |
 | Last Update | Date and time of the last successful update |
+| VOC Sensor Raw | Raw VOC sensor value |
 
 ### Settings and controls
 
@@ -72,11 +96,13 @@ Additional diagnostic entities provide information about the fan and its current
 | Pause | Start, cancel and duration |
 | Night Mode | Enable/disable, start time, end time and maximum RPM |
 | Silent Hours | Enable/disable, start time, end time and maximum RPM |
-| Integration | Poll interval, Keep Connection and Debug logs |
+| Airflow configuration | Duct size (Ø100/Ø125) and front type (Standard/Design) |
+| Integration | Poll interval, Keep Connection |
+| Device settings | Copy settings between configured devices |
 
 ## Firmware support
 
-The integration reads the hardware and software versions directly from the fan and adjusts the available entities automatically.
+The integration reads the hardware and firmware versions directly from the fan and adjusts the available entities automatically.
 
 - Newer firmware exposes a separate VOC RPM setting.
 - Older firmware uses a combined humidity and air-quality RPM setting.
@@ -153,7 +179,7 @@ When **Keep Connection** is enabled, the BLE connection is kept open and live va
 
 ## Night Mode and Silent Hours
 
-Night Mode and Silent Hours provide scheduled RPM limits managed entirely by Home Assistant. Each mode can be enabled and configured separately for every SKY device with a start time, end time, and maximum RPM.
+Night Mode and Silent Hours provide scheduled RPM limits managed entirely by Home Assistant. Each mode can be enabled and configured separately for every device with a start time, end time, and maximum RPM.
 
 When a scheduled mode starts, the integration saves the fan's normal RPM settings and temporarily limits settings that are higher than the configured maximum. Settings already below the limit remain unchanged and are never increased.
 
@@ -176,7 +202,7 @@ Manually changing an RPM setting while a scheduled mode is active overrides that
 
 ## Copy settings between devices
 
-When two or more SKY devices are configured, the integration provides:
+When two or more supported devices are configured, the integration provides:
 
 - **Copy From Device**
 - **Copy To Device**
@@ -190,7 +216,7 @@ Each device has a disabled-by-default **Debug logs** switch in the Diagnostic se
 
 When enabled, the integration logs detailed information for that device, including:
 
-- Hardware and software versions
+- Hardware and firmware versions
 - BLE address
 - RSSI and Bluetooth source when available
 - Raw BLE status payload
