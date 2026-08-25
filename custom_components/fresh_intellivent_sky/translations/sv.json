@@ -142,7 +142,21 @@
       },
       "copy_to_device": {
         "name": "Kopiera till enhet"
-      }
+      },
+      "duct_size": {
+        "name": "Kanaldiameter",
+        "state": {
+          "100_mm": "100 mm",
+          "125_mm": "125 mm"
+        }
+      },
+      "front_type": {
+        "name": "Fronttyp",
+        "state": {
+          "standard": "Standard",
+          "design": "Design"
+        }
+      }	  
     },
     "sensor": {
       "temperature": {
@@ -166,6 +180,16 @@
       "error": {
         "name": "Fel"
       },
+      "error_status": {
+        "name": "Felstatus",
+        "state": {
+          "no_error": "Inga fel",
+          "stm8_not_responding": "STM8 svarar inte",
+          "high_temperature": "För hög temperatur",
+          "motor_not_running": "Motorn går inte",
+          "touch_buttons": "Touchknappar"
+        }
+      },	  
       "sw_version": {
         "name": "Firmwareversion"
       },
@@ -177,7 +201,7 @@
       },
       "bluetooth_source": {
         "name": "Bluetoothkälla"
-      },	
+      },
       "connection_status": {
         "name": "Anslutningsstatus",
         "state": {
@@ -192,6 +216,9 @@
       "rpm": {
         "name": "Hastighet"
       },
+      "airflow": {
+        "name": "Luftflöde"
+      },	  
       "mode": {
         "name": "Läge"
       },

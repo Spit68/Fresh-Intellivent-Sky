@@ -142,7 +142,21 @@
       },
       "copy_to_device": {
         "name": "Copy To Device"
-      }
+      },
+      "duct_size": {
+        "name": "Duct Size",
+        "state": {
+          "100_mm": "100 mm",
+          "125_mm": "125 mm"
+        }
+      },
+      "front_type": {
+        "name": "Front Type",
+        "state": {
+          "standard": "Standard",
+          "design": "Design"
+        }
+      }	  
     },
     "sensor": {
       "temperature": {
@@ -166,6 +180,16 @@
       "error": {
         "name": "Error"
       },
+      "error_status": {
+        "name": "Error Status",
+        "state": {
+          "no_error": "No error",
+          "stm8_not_responding": "STM8 not responding",
+          "high_temperature": "High temperature",
+          "motor_not_running": "Motor not running",
+          "touch_buttons": "Touch buttons"
+        }
+      },	  
       "sw_version": {
         "name": "Firmware Version"
       },
@@ -192,6 +216,9 @@
       "rpm": {
         "name": "Current Speed"
       },
+      "airflow": {
+        "name": "Airflow"
+      },	  
       "mode": {
         "name": "Mode"
       },

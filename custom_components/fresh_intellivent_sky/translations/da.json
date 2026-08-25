@@ -142,6 +142,20 @@
       },
       "copy_to_device": {
         "name": "Kopier til enhed"
+      },	  
+      "duct_size": {
+        "name": "Kanaldimension",
+        "state": {
+          "100_mm": "100 mm",
+          "125_mm": "125 mm"
+        }
+      },
+      "front_type": {
+        "name": "Fronttype",
+        "state": {
+          "standard": "Standard",
+          "design": "Design"
+        }
       }	  
     },
     "sensor": {
@@ -166,6 +180,16 @@
       "error": {
         "name": "Fejl"
       },
+      "error_status": {
+        "name": "Fejlstatus",
+        "state": {
+          "no_error": "Ingen fejl",
+          "stm8_not_responding": "STM8 svarer ikke",
+          "high_temperature": "For høj temperatur",
+          "motor_not_running": "Motor kører ikke",
+          "touch_buttons": "Touch-knapper"
+        }
+      },	  
       "sw_version": {
         "name": "Firmware version"
       },
@@ -192,6 +216,9 @@
       "rpm": {
         "name": "Aktuel hastighed"
       },
+      "airflow": {
+        "name": "Luftflow"
+      },	  
       "mode": {
         "name": "Tilstand"
       },
