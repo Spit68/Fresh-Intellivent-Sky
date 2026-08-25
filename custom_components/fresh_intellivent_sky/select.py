@@ -1,4 +1,4 @@
-"""Support for sensors."""
+"""Support for selects."""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -32,7 +32,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up sensors dynamically through discovery."""
+    """Set up selects dynamically through discovery."""
     coordinator: DataUpdateCoordinator[FreshIntelliVent] = hass.data[DOMAIN][
         "devices"
     ][config_entry.entry_id]
@@ -65,6 +65,26 @@ async def async_setup_entry(
                 ),
                 keys=["light_and_voc", "voc", DETECTION_KEY],
             ),
+            FreshIntelliventSkyInstallationSelect(
+                coordinator,
+                coordinator.data,
+                SelectEntityDescription(
+                    key="duct_size",
+                    translation_key="duct_size",
+                    icon="mdi:pipe",
+                ),
+                options=["100_mm", "125_mm"],
+            ),
+            FreshIntelliventSkyInstallationSelect(
+                coordinator,
+                coordinator.data,
+                SelectEntityDescription(
+                    key="front_type",
+                    translation_key="front_type",
+                    icon="mdi:fan",
+                ),
+                options=["standard", "design"],
+            ),            
         ]
 
     domain_data = hass.data[DOMAIN]
@@ -106,7 +126,7 @@ async def async_setup_entry(
 class FreshIntelliventSkyCopySelect(
     CoordinatorEntity[DataUpdateCoordinator[Any]], SelectEntity
 ):
-    """Select the source or destination SKY for copying settings."""
+    """Select the source or destination device for copying settings."""
 
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
@@ -178,7 +198,7 @@ class FreshIntelliventSkyCopySelect(
 
     @property
     def options(self) -> list[str]:
-        """Return all selectable SKY devices."""
+        """Return all selectable devices."""
         return list(self._device_labels().values())
 
     @property
@@ -190,7 +210,7 @@ class FreshIntelliventSkyCopySelect(
         return self._device_labels().get(selected_entry_id)
 
     async def async_select_option(self, option: str) -> None:
-        """Select a SKY device."""
+        """Select a device."""
         labels = self._device_labels()
         selected_entry_id = next(
             (
@@ -202,7 +222,7 @@ class FreshIntelliventSkyCopySelect(
         )
 
         if selected_entry_id is None:
-            raise ValueError(f"Unknown Fresh Intellivent SKY device: {option}")
+            raise ValueError(f"Unknown Fresh Intellivent device: {option}")
 
         self.hass.data[DOMAIN][self._selection_key] = selected_entry_id
 
@@ -212,11 +232,69 @@ class FreshIntelliventSkyCopySelect(
         for coordinator in self.hass.data[DOMAIN]["devices"].values():
             coordinator.async_update_listeners()
 
+class FreshIntelliventSkyInstallationSelect(
+    CoordinatorEntity[DataUpdateCoordinator[Any]], SelectEntity
+):
+    """Select a local physical installation setting."""
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        device: FreshIntelliVent,
+        entity_description: SelectEntityDescription,
+        options: list[str],
+    ) -> None:
+        """Initialize a local installation select."""
+        super().__init__(coordinator)
+        self.entity_description = entity_description
+        self._attr_options = options
+
+        name = f"{device.manufacturer} {device.name}"
+
+        self._attr_unique_id = (
+            f"{device.manufacturer}_{name}_{entity_description.key}"
+        )
+
+        self._attr_device_info = DeviceInfo(
+            connections={
+                (
+                    CONNECTION_BLUETOOTH,
+                    device.address,
+                )
+            },
+            name=name,
+            manufacturer=device.manufacturer,
+            model=device.model,
+            hw_version=device.hw_version,
+            sw_version=device.sw_version,
+        )
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the selected installation setting."""
+        return getattr(
+            self.coordinator,
+            self.entity_description.key,
+            None,
+        )
+
+    async def async_select_option(self, option: str) -> None:
+        """Set the local installation setting."""
+        if option not in self.options:
+            raise ValueError(f"Invalid option: {option}")
+
+        await self.coordinator.async_set_installation_option(
+            self.entity_description.key,
+            option,
+        )
 
 class FreshIntelliventSkySelect(
     CoordinatorEntity[DataUpdateCoordinator[Any]], SelectEntity
 ):
-    """Fresh Intellivent Sky numbers for the device."""
+    """Fresh Intellivent selects for the device."""
 
     _attr_has_entity_name = True
 

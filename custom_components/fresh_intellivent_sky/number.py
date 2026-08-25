@@ -47,7 +47,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up sensors dynamically through discovery."""
+    """Set up numbers dynamically through discovery."""
     coordinator: DataUpdateCoordinator[FreshIntelliVent] = hass.data[DOMAIN][
         "devices"
     ][config_entry.entry_id]
@@ -270,7 +270,7 @@ async def async_setup_entry(
 class FreshIntelliventSkyNumber(
     CoordinatorEntity[DataUpdateCoordinator[Any]], NumberEntity
 ):
-    """Fresh Intellivent Sky numbers for the device."""
+    """Fresh Intellivent numbers for the device."""
 
     _attr_has_entity_name = True
 

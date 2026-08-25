@@ -32,7 +32,6 @@ class FetchAndUpdate:
     def __init__(self, coordinator, client: FreshIntelliVent):
         self._coordinator = coordinator
         self._client = client
-        self._is_authenticated = True
 
     def _clear_pending_if_written(
         self,
@@ -113,7 +112,7 @@ class FetchAndUpdate:
         return did_write
 
     async def _fetch_all_settings(self) -> None:
-        """Read all persistent settings from SKY."""
+        """Read all persistent settings from the device."""
         await self._client.fetch_airing()
         await self._client.fetch_constant_speed()
         await self._client.fetch_humidity()
@@ -127,7 +126,7 @@ class FetchAndUpdate:
         """Start or cancel Boost."""
         boost = self._coordinator.pending_updates.get(BOOST_UPDATE)
 
-        if boost is None or self._is_authenticated is not True:
+        if boost is None:
             return False
 
         seconds=int(boost[MINUTES_KEY]) * 60
@@ -142,7 +141,7 @@ class FetchAndUpdate:
     async def _update_pause(self) -> bool:
         pause = self._coordinator.pending_updates.get(PAUSE_UPDATE)
 
-        if pause is None or self._is_authenticated is not True:
+        if pause is None:
             return False
 
         await self._client.update_pause(
@@ -155,7 +154,7 @@ class FetchAndUpdate:
     async def _update_airing(self) -> bool:
         airing_mode = self._coordinator.pending_updates.get(AIRING_MODE_UPDATE)
 
-        if airing_mode is None or self._is_authenticated is not True:
+        if airing_mode is None:
             return False
 
         await self._client.update_airing(
@@ -169,7 +168,7 @@ class FetchAndUpdate:
     async def _update_constant_speed(self) -> bool:
         constant_speed = self._coordinator.pending_updates.get(CONSTANT_SPEED_UPDATE)
 
-        if constant_speed is None or self._is_authenticated is not True:
+        if constant_speed is None:
             return False
 
         await self._client.update_constant_speed(
@@ -182,7 +181,7 @@ class FetchAndUpdate:
     async def _update_humidity(self) -> bool:
         humidity_mode = self._coordinator.pending_updates.get(HUMIDITY_MODE_UPDATE)
 
-        if humidity_mode is None or self._is_authenticated is not True:
+        if humidity_mode is None:
             return False
 
         await self._client.update_humidity(
@@ -196,7 +195,7 @@ class FetchAndUpdate:
     async def _update_light_and_voc(self) -> bool:
         light_and_voc_mode = self._coordinator.pending_updates.get(LIGHT_AND_VOC_MODE_UPDATE)
 
-        if light_and_voc_mode is None or self._is_authenticated is not True:
+        if light_and_voc_mode is None:
             return False
 
         light = "light_"
@@ -218,7 +217,7 @@ class FetchAndUpdate:
         """Update timer/presence settings."""
         timer_mode = self._coordinator.pending_updates.get(TIMER_MODE_UPDATE)
 
-        if timer_mode is None or self._is_authenticated is not True:
+        if timer_mode is None:
             return False
 
         await self._client.update_timer(
@@ -235,7 +234,7 @@ class FetchAndUpdate:
         """Update VOC mode RPM while preserving page 5 companion fields."""
         voc_mode = self._coordinator.pending_updates.get(VOC_MODE_UPDATE)
 
-        if voc_mode is None or self._is_authenticated is not True:
+        if voc_mode is None:
             return False
 
         await self._client.update_voc(

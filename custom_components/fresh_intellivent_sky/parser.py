@@ -1,11 +1,11 @@
-"""Parser for Fresh Intellivent Sky mode settings."""
+"""Parser for Fresh Intellivent mode settings."""
 from struct import pack, unpack
 from typing import Any, Union
 
 from . import helpers as h
 
 class SkyModeParser:
-    """Parser for Fresh Intellivent Sky mode settings."""
+    """Parser for Fresh Intellivent mode settings."""
 
     def airing_read(
         self, value: Union[bytes, bytearray]

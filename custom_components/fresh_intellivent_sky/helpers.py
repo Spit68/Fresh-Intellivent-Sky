@@ -1,4 +1,4 @@
-"""Helper functions for Fresh Intellivent Sky devices."""
+"""Helper functions for Fresh Intellivent devices."""
 
 from typing import Union
 

@@ -195,6 +195,17 @@ async def async_setup_entry(
                 coordinator,
                 coordinator.data,
                 SensorEntityDescription(
+                    key="airflow",
+                    translation_key="airflow",
+                    native_unit_of_measurement="m³/h",
+                    state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=1,
+                ),
+            ),           
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
                     key="mode",
                     translation_key="mode",
                 ),
@@ -218,6 +229,14 @@ async def async_setup_entry(
                     translation_key="boost_remaining",
                     native_unit_of_measurement=UnitOfTime.SECONDS,
                     state_class=SensorStateClass.MEASUREMENT,
+                ),
+            ),
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="error_status",
+                    translation_key="error_status",
                 ),
             ),
             FreshIntelliventSkySensor(
@@ -303,7 +322,7 @@ class FreshIntelliventSkySensor(
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Synchronize local countdown after every SKY poll."""
+        """Synchronize local countdown after every device poll."""
         if self.entity_description.key == BOOST_REMAINING_KEY:
             self._sync_boost_countdown()
         elif self.entity_description.key == PAUSE_REMAINING_KEY:
@@ -312,7 +331,7 @@ class FreshIntelliventSkySensor(
         super()._handle_coordinator_update()
 
     def _sync_boost_countdown(self) -> None:
-        """Synchronize the local countdown with SKY."""
+        """Synchronize the local Boost countdown with the device."""
         boost = self.coordinator.data.modes.get("boost")
 
         if not boost or not boost.get("active", False):
@@ -326,7 +345,7 @@ class FreshIntelliventSkySensor(
         self._boost_deadline = time.monotonic() + remaining
 
     def _sync_pause_countdown(self) -> None:
-        """Synchronize Pause only when SKY reports a changed minute value."""
+        """Synchronize Pause only when the device reports a changed minute value."""
         pause = self.coordinator.data.modes.get("pause")
 
         if not pause or not pause.get("enabled", False):
@@ -414,6 +433,39 @@ class FreshIntelliventSkySensor(
             return dt_util.as_local(
                 self.coordinator.last_successful_update
             ).strftime("%d-%m-%Y %H:%M:%S")         
+            
+        if self.entity_description.key == "error_status":
+            raw = self.coordinator.error_status["raw"]
+
+            error_states = {
+                0x00: "no_error",
+                0x01: "stm8_not_responding",
+                0x02: "high_temperature",
+                0x04: "motor_not_running",
+                0x08: "touch_buttons",
+            }
+
+            return error_states.get(raw, f"0x{raw:02X}") 
+
+        if self.entity_description.key == "airflow":
+            rpm = self.coordinator.data.sensors.rpm
+
+            max_airflow = {
+                ("100_mm", "standard"): 115.0,
+                ("125_mm", "standard"): 140.0,
+                ("100_mm", "design"): 95.0,
+                ("125_mm", "design"): 110.0,
+            }.get(
+                (
+                    self.coordinator.duct_size,
+                    self.coordinator.front_type,
+                )
+            )
+
+            if max_airflow is None:
+                return None
+
+            return round((rpm / 2400) * max_airflow, 1)            
 
         return self.coordinator.data.sensors.as_dict()[
             self.entity_description.key

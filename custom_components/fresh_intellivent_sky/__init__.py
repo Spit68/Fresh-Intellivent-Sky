@@ -1,4 +1,4 @@
-"""The Fresh Intellivent Sky integration."""
+"""The Fresh Intellivent integration."""
 from __future__ import annotations
 
 import asyncio
@@ -20,6 +20,7 @@ from .const import (
     AIRING_MODE_UPDATE,
     BOOST_UPDATE,
     CONF_AUTH_KEY,
+    CONF_MODEL,
     CONSTANT_SPEED_UPDATE,
     DOMAIN,
     ENABLED_KEY,
@@ -80,7 +81,7 @@ def _refresh_debug_logger_level(
     hass: HomeAssistant,
     current_coordinator=None,
 ) -> None:
-    """Enable the dedicated debug logger while any SKY has debug enabled."""
+    """Enable the dedicated debug logger while any device has debug enabled."""
     devices = hass.data.get(DOMAIN, {}).get("devices", {})
     enabled = bool(
         getattr(current_coordinator, "debug_logging", False)
@@ -95,7 +96,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
 ) -> bool:
-    """Set up Fresh Intellivent Sky."""
+    """Set up Fresh Intellivent."""
     hass.data.setdefault(
         DOMAIN,
         {
@@ -110,7 +111,7 @@ async def async_setup_entry(
 
     if not ble_device:
         raise ConfigEntryNotReady(
-            f"Could not find Fresh Intellivent Sky device with address {address}"
+            f"Could not find Fresh Intellivent device with address {address}"
         )
 
     auth_key = entry.data.get(CONF_AUTH_KEY)
@@ -128,7 +129,10 @@ async def async_setup_entry(
         if initial_keep_connection
         else initial_poll_interval
     )
-    client = FreshIntelliVent(ble_device=ble_device)
+    client = FreshIntelliVent(
+        ble_device=ble_device,
+        model=entry.data.get(CONF_MODEL, "Intellivent SKY"),
+    )
     update_lock = asyncio.Lock()
     scheduled_mode_lock = asyncio.Lock()
     schedule_store = Store(
@@ -138,6 +142,10 @@ async def async_setup_entry(
     )
 
     stored_schedule = await schedule_store.async_load() or {}
+
+    stored_installation = stored_schedule.get("installation", {})
+    if not isinstance(stored_installation, dict):
+        stored_installation = {}
 
     stored_modes = stored_schedule.get("modes", {})
     if not isinstance(stored_modes, dict):
@@ -249,16 +257,10 @@ async def async_setup_entry(
 
         await _connect_and_authenticate()
         await client.fetch_sensor_data()
-        
-        service_info = bluetooth.async_last_service_info(
-            hass,
-            address,
-            connectable=True,
-        )
-
-        if service_info is not None:
-            coordinator.rssi = service_info.rssi
-            coordinator.bluetooth_source = service_info.source        
+        error_status = await client.fetch_error_status()
+        coordinator.error_status = error_status        
+        coordinator.rssi = client.rssi
+        coordinator.bluetooth_source = client.bluetooth_source
 
         if coordinator.debug_logging:
             sensors = client.sensors
@@ -268,7 +270,7 @@ async def async_setup_entry(
                 "fw_version=%s "
                 "ble_address=%s "
                 "rssi=%s "
-                "bluetooth_source=%s "                
+                "bluetooth_source=%s "  
                 "raw_ble_payload=%s "
                 "flags=%s "
                 "active_trigger=%s "
@@ -280,12 +282,13 @@ async def async_setup_entry(
                 "reference=%s "
                 "min_active=%s "
                 "temperature=%s "
-                "error=%s",
+                "error=%s "
+                "error_status_raw=0x%02x",
                 coordinator.hw_version,
                 coordinator.sw_version,
                 coordinator.ble_address,
                 coordinator.rssi,
-                coordinator.bluetooth_source,                
+                coordinator.bluetooth_source,      
                 sensors.raw_ble_payload,
                 sensors.flags,
                 sensors.active_trigger,
@@ -298,6 +301,7 @@ async def async_setup_entry(
                 sensors.minimum_active,
                 sensors.temperature,
                 sensors.error,
+                error_status["raw"],
             )
 
         await client.fetch_pause()
@@ -322,7 +326,7 @@ async def async_setup_entry(
         return client
 
     async def _async_update_method() -> FreshIntelliVent:
-        """Update Fresh Intellivent Sky data."""
+        """Update Fresh Intellivent data."""
         if coordinator.copy_in_progress:
             return client
 
@@ -398,6 +402,8 @@ async def async_setup_entry(
     coordinator.boost_minutes = 15
     coordinator.boost_rpm = 2400
     coordinator.pause_minutes = 15
+    coordinator.duct_size = stored_installation.get("duct_size", "100_mm")
+    coordinator.front_type = stored_installation.get("front_type", "standard")    
     coordinator.update_lock = update_lock
     coordinator.pending_updates = {
         update: None for update in ALL_UPDATES
@@ -416,6 +422,14 @@ async def async_setup_entry(
             1000,
         ),
     }
+    coordinator.error_status = {
+        "raw": 0,
+        "stm8_not_responding": False,
+        "high_temperature": False,
+        "motor_not_running": False,
+        "touch_buttons": False,
+    }
+    
     stored_rpm_settings = stored_schedule.get("normal_rpm_settings")
     coordinator.normal_rpm_settings = (
         stored_rpm_settings
@@ -492,6 +506,15 @@ async def async_setup_entry(
                 DEBUG_LOGGING_OPTION: enabled,
             },
         )
+        
+    async def _async_set_installation_option(
+        key: str,
+        value: str,
+    ) -> None:
+        """Set and save a local physical installation option."""
+        setattr(coordinator, key, value)
+        await _async_save_scheduled_modes()
+        coordinator.async_update_listeners()        
 
     async def _async_save_scheduled_modes() -> None:
         """Persist scheduled modes and the normal RPM settings."""
@@ -509,6 +532,10 @@ async def async_setup_entry(
             {
                 "modes": modes,
                 "normal_rpm_settings": coordinator.normal_rpm_settings,
+                "installation": {
+                    "duct_size": coordinator.duct_size,
+                    "front_type": coordinator.front_type,
+                },
             }
         )
 
@@ -680,6 +707,7 @@ async def async_setup_entry(
     coordinator.async_set_scheduled_mode_max_rpm = (
         _async_set_scheduled_mode_max_rpm
     )
+    coordinator.async_set_installation_option = _async_set_installation_option    
 
     await coordinator.async_config_entry_first_refresh()
 
@@ -726,7 +754,7 @@ async def async_unload_entry(
                 await coordinator.client.disconnect()
         except Exception as err: 
             _LOGGER.debug(
-                "Could not disconnect Fresh Intellivent Sky during unload: %s",
+                "Could not disconnect Fresh Intellivent during unload: %s",
                 err,
             )
 

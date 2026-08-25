@@ -1,4 +1,4 @@
-"""Config flow for Fresh Intellivent Sky integration."""
+"""Config flow for Fresh Intellivent integration."""
 from __future__ import annotations
 
 import dataclasses
@@ -22,6 +22,7 @@ from .const import (
     CONF_AUTH_KEY,
     DOMAIN,
     NAME,
+    CONF_MODEL,
     AUTH_MANUAL,
     AUTH_FETCH,
     NO_AUTH,
@@ -35,7 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class Discovery:
-    """A discovered bluetooth device."""
+    """A discovered Bluetooth device."""
 
     name: str
     discovery_info: BluetoothServiceInfo
@@ -52,7 +53,7 @@ class FreshIntelliventSkyDeviceUpdateError(Exception):
 
 
 class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Fresh Intellivent Sky."""
+    """Handle a config flow for Fresh Intellivent."""
 
     VERSION = 1
 
@@ -70,7 +71,10 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
         if ble_device is None:
             raise FreshIntelliventSkyDeviceUpdateError("No ble_device")
 
-        client = FreshIntelliVent(ble_device=ble_device)
+        client = FreshIntelliVent(
+            ble_device=ble_device,
+            model=discovery_info.name,
+        )
         error = None
 
         try:
@@ -197,7 +201,9 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
         """No auth key."""
         return self.async_create_entry(
             title=self.context["title_placeholders"]["name"],
-            data={},
+            data={
+                CONF_MODEL: self._discovered_device.discovery_info.name,
+            },
         )
 
     async def async_step_auth_manual(
@@ -216,7 +222,10 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 return self.async_create_entry(
                     title=self.context["title_placeholders"]["name"],
-                    data={CONF_AUTH_KEY: auth_key},
+                    data={
+                        CONF_AUTH_KEY: auth_key,
+                        CONF_MODEL: self._discovered_device.discovery_info.name,
+                    },
                 )
 
         return self.async_show_form(
@@ -249,5 +258,8 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
         else:
             return self.async_create_entry(
                 title=self.context["title_placeholders"]["name"],
-                data={CONF_AUTH_KEY: code.hex()},
+                data={
+                    CONF_AUTH_KEY: code.hex(),
+                    CONF_MODEL: self._discovered_device.discovery_info.name,
+                },
             )

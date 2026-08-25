@@ -33,7 +33,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up sensors dynamically through discovery."""
+    """Set up switches dynamically through discovery."""
     coordinator: DataUpdateCoordinator[FreshIntelliVent] = hass.data[DOMAIN][
         "devices"
     ][config_entry.entry_id]
@@ -107,7 +107,7 @@ async def async_setup_entry(
 class FreshIntelliventSkySwitch(
     CoordinatorEntity[DataUpdateCoordinator[Any]], SwitchEntity
 ):
-    """Fresh Intellivent Sky numbers for the device."""
+    """Fresh Intellivent switches for the device."""
 
     _attr_has_entity_name = True
 
@@ -143,7 +143,7 @@ class FreshIntelliventSkySwitch(
 
     @property
     def is_on(self) -> bool:
-        """Return the value reported by the sensor."""
+        """Return whether the switch is enabled."""
         if self._keys is None:
             return None
         value = self.coordinator.data.modes
@@ -259,7 +259,7 @@ class FreshIntelliventKeepConnectionSwitch(
 class FreshIntelliventScheduledModeSwitch(
     CoordinatorEntity[DataUpdateCoordinator[Any]], SwitchEntity
 ):
-    """Enable or disable a scheduled RPM mode for one SKY."""
+    """Enable or disable a scheduled RPM mode for one device."""
 
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
@@ -312,7 +312,7 @@ class FreshIntelliventScheduledModeSwitch(
 class FreshIntelliventDebugLoggingSwitch(
     CoordinatorEntity[DataUpdateCoordinator[Any]], SwitchEntity
 ):
-    """Enable detailed diagnostic logging for one SKY."""
+    """Enable detailed diagnostic logging for one device."""
 
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC

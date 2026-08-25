@@ -13,6 +13,7 @@ AUTH_CODE_ONLY_ZERO = "auth_code_only_zero"
 AUTH_CODE_EMPTY = "auth_code_empty"
 
 CONF_AUTH_KEY = "auth_key"
+CONF_MODEL = "model"
 
 BOOST_UPDATE = "boost_update"
 BOOST_REMAINING_KEY = "boost_remaining"

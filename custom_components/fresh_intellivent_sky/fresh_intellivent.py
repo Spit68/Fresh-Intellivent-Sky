@@ -1,4 +1,4 @@
-"""Python interface for Fresh Intellivent Sky bathroom ventilation fan."""
+"""Python interface for Fresh Intellivent bathroom ventilation fan."""
 
 from __future__ import annotations
 
@@ -17,11 +17,10 @@ from .parser import SkyModeParser
 from .sky_sensors import SkySensors
 
 class FreshIntelliVent:
-    """Fresh Intellivent Sky device handler."""
+    """Fresh Intellivent device handler."""
 
     name: str | None
     manufacturer: str | None
-    model = "Intellivent Sky"
     fw_version: str | None
     hw_version: str | None
     sw_version: str | None
@@ -29,7 +28,7 @@ class FreshIntelliVent:
     modes: dict[str, Any]
     sensors: SkySensors
 
-    def __init__(self, ble_device: BLEDevice) -> None:
+    def __init__(self, ble_device: BLEDevice, model: str) -> None:
         self.parser = SkyModeParser()
         self.modes = {}
         self.sensors = SkySensors()
@@ -37,6 +36,8 @@ class FreshIntelliVent:
         self.address = ble_device.address
         self._ble_device = ble_device
         self._client: BleakClient | None = None
+        self.bluetooth_source: str | None = None
+        self.model = model
 
     @property
     def is_connected(self) -> bool:
@@ -68,6 +69,28 @@ class FreshIntelliVent:
             self._ble_device,
             self._ble_device.address,
         )
+
+        connected_scanner = getattr(self._client, "_connected_scanner", None)
+        
+        self.bluetooth_source = (
+            getattr(connected_scanner, "name", None)
+            if connected_scanner is not None
+            else None
+        )
+        
+        advertisement_data = (
+            connected_scanner.get_discovered_device_advertisement_data(
+                self._ble_device.address
+            )
+            if connected_scanner is not None
+            else None
+        )
+
+        self.rssi = (
+            advertisement_data[1].rssi
+            if advertisement_data is not None
+            else None
+        )        
 
     async def disconnect(self) -> None:
         """Disconnect from the device."""
@@ -335,6 +358,26 @@ class FreshIntelliVent:
         """Update temporary speed settings on the device."""
         value = self.parser.temporary_speed_write(enabled=enabled, rpm=rpm)
         await self._write_characteristic(characteristics.TEMPORARY_SPEED, value)
+        
+    async def fetch_error_status(self) -> dict[str, Union[bool, int]]:
+        """Fetch and decode device error status bitmask."""
+        value = await self._read_characteristics(
+            uuid=characteristics.DEVICE_ERROR_STATUS
+        )
+        if len(value) != 1:
+            raise FreshIntelliventError(
+                f"Invalid error status length: {len(value)}"
+            )
+
+        raw = int(value[0])
+
+        return {
+            "raw": raw,
+            "stm8_not_responding": bool(raw & 0x01),
+            "high_temperature": bool(raw & 0x02),
+            "motor_not_running": bool(raw & 0x04),
+            "touch_buttons": bool(raw & 0x08),
+        }        
 
     async def fetch_sensor_data(self) -> SkySensors:
         """Fetch sensor data from the device."""

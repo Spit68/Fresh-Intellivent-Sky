@@ -1,4 +1,4 @@
-"""Support for Fresh Intellivent SKY action buttons."""
+"""Support for Fresh Intellivent action buttons."""
 from __future__ import annotations
 
 import asyncio
@@ -38,7 +38,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Fresh Intellivent SKY buttons."""
+    """Set up Fresh Intellivent buttons."""
     coordinator: DataUpdateCoordinator[FreshIntelliVent] = hass.data[DOMAIN][
         "devices"
     ][config_entry.entry_id]
@@ -110,7 +110,7 @@ async def async_setup_entry(
 class FreshIntelliventSkyCopySettingsButton(
     CoordinatorEntity[DataUpdateCoordinator[Any]], ButtonEntity
 ):
-    """Copy settings from the selected source SKY to the destination SKY."""
+    """Copy settings from the selected source device to the destination device."""
 
     _attr_has_entity_name = True
 
@@ -122,7 +122,7 @@ class FreshIntelliventSkyCopySettingsButton(
         entry_id: str,
         entity_description: ButtonEntityDescription,
     ) -> None:
-        """Initialize the copy-settings button for one destination SKY."""
+        """Initialize the copy-settings button for one destination device."""
         super().__init__(coordinator)
         self.hass = hass
         self._entry_id = entry_id
@@ -165,7 +165,7 @@ class FreshIntelliventSkyCopySettingsButton(
         )
 
     async def async_press(self) -> None:
-        """Copy all supported settings to the selected destination SKY."""
+        """Copy all supported settings to the selected destination device."""
         if not self.available:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
@@ -209,8 +209,6 @@ class FreshIntelliventSkyCopySettingsButton(
             else:
                 expected_voc_rpm = int(source_modes["voc"][RPM_KEY])
 
-        # These four values only exist in Home Assistant and are therefore
-        # copied without writing anything to the source or destination SKY.
         target.boost_minutes = int(getattr(source, "boost_minutes", 15))
         target.boost_rpm = int(getattr(source, "boost_rpm", 2400))
         target.pause_minutes = int(getattr(source, "pause_minutes", 15))
@@ -222,8 +220,6 @@ class FreshIntelliventSkyCopySettingsButton(
         should_disconnect = not target.keep_connection
 
         try:
-            # The destination lock waits for an update already in progress and
-            # prevents new destination updates during the complete copy.
             async with target.update_lock:
                 if not client.is_connected:
                     await client.connect(timeout=TIMEOUT)
@@ -284,7 +280,6 @@ class FreshIntelliventSkyCopySettingsButton(
                     )
                     await asyncio.sleep(0.1)
 
-                # Read every written setting back from the destination SKY.
                 await client.fetch_constant_speed()
                 await client.fetch_airing()
                 await client.fetch_humidity()
@@ -325,7 +320,7 @@ class FreshIntelliventSkyCopySettingsButton(
         timer: dict[str, Any],
         expected_voc_rpm: int | None,
     ) -> None:
-        """Verify values read back from the destination SKY."""
+        """Verify values read back from the destination device."""
         checks = (
             (
                 "constant speed enabled",
