@@ -220,7 +220,52 @@
         "name": "Airflow"
       },	  
       "mode": {
-        "name": "Mode"
+        "name": "Mode",
+        "state": {
+          "Off": "Off",
+          "Constant speed": "Constant speed",
+          "Light": "Light",
+          "Humidity": "Humidity",
+          "Timer": "Timer",
+          "VOC": "VOC",
+          "Automatic cycle": "Automatic cycle",
+          "Pause": "Pause",
+          "Boost": "Boost",
+          "Motor test": "Motor test",
+          "Humidity sinking": "Humidity sinking",
+          "Unknown": "Unknown",
+          "Delayed start": "Delayed start"
+        }
+      },
+      "active_trigger": {
+        "name": "Active Trigger",
+        "state": {
+          "None": "None",
+          "Humidity": "Humidity",
+          "Presence": "Light",
+          "Timer": "Timer",
+          "VOC": "VOC",
+          "Automatic cycle": "Automatic cycle",
+          "Pause": "Pause",
+          "Boost": "Boost",
+          "Motor test": "Motor test",
+          "Humidity sinking": "Humidity sinking",
+          "Unknown": "Unknown",
+          "Delayed start": "Delayed start"
+        }
+      },
+      "motor_speed": {
+        "name": "Motor Speed Type",
+        "state": {
+          "Off": "Off",
+          "Constant": "Constant",
+          "Timer": "Timer",
+          "Humidity": "Humidity",
+          "Automatic cycles": "Automatic cycles",
+          "VOC": "VOC",
+          "Boost / Special": "Boost / Special",
+          "Unknown": "Unknown"
+        }
       },
       "mode_raw": {
         "name": "Mode Raw"

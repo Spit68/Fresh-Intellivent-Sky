@@ -3,15 +3,29 @@ from typing import Any, Union
 
 MODE_UNKNOWN = "Unknown"
 
-_MODES = {
-    0: "Off",
+_TRIGGER_MODES = {
+    0: "None",
+    1: "Humidity",
+    2: "Presence",
+    3: "Timer",
+    4: "VOC",
+    5: "Automatic cycle",
     6: "Pause",
-    16: "Constant speed",
-    34: "Light",
-    35: "Timer",
-    49: "Humidity",
-    84: "VOC",
-    103: "Boost",
+    7: "Boost",
+    8: "Motor test",
+    9: "Humidity sinking",
+    10: "Unknown",
+    11: "Delayed start",
+}
+
+_MOTOR_SPEED_MODES = {
+    0: "Off",
+    1: "Constant",
+    2: "Timer",
+    3: "Humidity",
+    4: "Automatic cycles",
+    5: "VOC",
+    6: "Boost / Special",
 }
 
 class SkySensors:
@@ -24,6 +38,8 @@ class SkySensors:
     flags: Union[int, None]
     active_trigger: Union[int, None]
     motor_speed: Union[int, None]
+    active_trigger_name: Union[str, None]
+    motor_speed_name: Union[str, None]    
 
     humidity_raw: Union[int, None]
     voc_raw: Union[int, None]
@@ -48,16 +64,27 @@ class SkySensors:
         
         self.raw_ble_payload = data.hex()
         self.flags = int(values[0])
-        self.active_trigger = int(values[1] & 0x0F)
-        self.motor_speed = int(values[1] >> 4)
+        self.mode_raw = int(values[1])
+        self.active_trigger = self.mode_raw & 0x0F
+        self.motor_speed = (self.mode_raw >> 4) & 0x0F
+
+        self.active_trigger_name = _TRIGGER_MODES.get(
+            self.active_trigger, MODE_UNKNOWN
+        )
+        self.motor_speed_name = _MOTOR_SPEED_MODES.get(
+            self.motor_speed, MODE_UNKNOWN
+        )
 
         self.status = bool(self.flags)
 
-        self.mode_raw = int(values[1])
-        if mode := _MODES.get(self.mode_raw):
-            self.mode = mode
+        if self.mode_raw == 0:
+            self.mode = "Off"
+        elif self.active_trigger == 0:
+            self.mode = "Constant speed"
+        elif self.active_trigger == 2:
+            self.mode = "Light"
         else:
-            self.mode = MODE_UNKNOWN
+            self.mode = self.active_trigger_name
 
         self.humidity_raw = values[2]
         self.voc_raw = values[3]
@@ -78,6 +105,8 @@ class SkySensors:
             "flags": self.flags,
             "active_trigger": self.active_trigger,
             "motor_speed": self.motor_speed,
+            "active_trigger_name": self.active_trigger_name,
+            "motor_speed_name": self.motor_speed_name,
             "humidity_raw": self.humidity_raw,
             "voc_raw": self.voc_raw,
             "light_raw": self.light_raw,

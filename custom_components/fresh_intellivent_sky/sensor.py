@@ -208,8 +208,29 @@ async def async_setup_entry(
                 SensorEntityDescription(
                     key="mode",
                     translation_key="mode",
+                    device_class=SensorDeviceClass.ENUM,
                 ),
             ),
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="active_trigger_name",
+                    translation_key="active_trigger",
+                    device_class=SensorDeviceClass.ENUM,
+                ),
+            ),     
+            FreshIntelliventSkySensor(
+                coordinator,
+                coordinator.data,
+                SensorEntityDescription(
+                    key="motor_speed_name",
+                    translation_key="motor_speed",
+                    device_class=SensorDeviceClass.ENUM,
+                    entity_registry_enabled_default=False,
+                ),
+                EntityCategory.DIAGNOSTIC,
+            ),            
             FreshIntelliventSkySensor(
                 coordinator,
                 coordinator.data,
@@ -270,6 +291,31 @@ class FreshIntelliventSkySensor(
         """Populate the entity with relevant data."""
         super().__init__(coordinator)
         self.entity_description = entity_description
+        
+        if entity_description.key in (
+            "mode",
+            "active_trigger_name",
+            "motor_speed_name",
+        ):
+            self._attr_options = {
+                "mode": [
+                    "Off", "Constant speed", "Light", "Humidity",
+                    "Timer", "VOC", "Automatic cycle", "Pause",
+                    "Boost", "Motor test", "Humidity sinking",
+                    "Unknown", "Delayed start",
+                ],
+                "active_trigger_name": [
+                    "None", "Humidity", "Presence", "Timer",
+                    "VOC", "Automatic cycle", "Pause", "Boost",
+                    "Motor test", "Humidity sinking", "Unknown",
+                    "Delayed start",
+                ],
+                "motor_speed_name": [
+                    "Off", "Constant", "Timer", "Humidity",
+                    "Automatic cycles", "VOC", "Boost / Special",
+                    "Unknown",
+                ],
+            }[entity_description.key]        
 
         name = f"{device.manufacturer} {device.name}"
 

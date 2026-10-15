@@ -220,8 +220,53 @@
         "name": "Luftflöde"
       },	  
       "mode": {
-        "name": "Läge"
+        "name": "Läge",
+        "state": {
+          "Off": "Av",
+          "Constant speed": "Konstant hastighet",
+          "Light": "Ljus",
+          "Humidity": "Luftfuktighet",
+          "Timer": "Timer",
+          "VOC": "Luftkvalitet",
+          "Automatic cycle": "Automatisk vädring",
+          "Pause": "Paus",
+          "Boost": "Boost",
+          "Motor test": "Motortest",
+          "Humidity sinking": "Sjunkande luftfuktighet",
+          "Unknown": "Okänd",
+          "Delayed start": "Fördröjd start"
+        }
       },
+      "active_trigger": {
+        "name": "Aktiv utlösare",
+        "state": {
+          "None": "Ingen",
+          "Humidity": "Luftfuktighet",
+          "Presence": "Ljus",
+          "Timer": "Timer",
+          "VOC": "Luftkvalitet",
+          "Automatic cycle": "Automatisk vädring",
+          "Pause": "Paus",
+          "Boost": "Boost",
+          "Motor test": "Motortest",
+          "Humidity sinking": "Sjunkande luftfuktighet",
+          "Unknown": "Okänd",
+          "Delayed start": "Fördröjd start"
+        }
+      },
+      "motor_speed": {
+        "name": "Motorhastighetstyp",
+        "state": {
+          "Off": "Av",
+          "Constant": "Konstant",
+          "Timer": "Timer",
+          "Humidity": "Luftfuktighet",
+          "Automatic cycles": "Automatisk vädring",
+          "VOC": "Luftkvalitet",
+          "Boost / Special": "Boost / Special",
+          "Unknown": "Okänd"
+        }
+      },	  
       "mode_raw": {
         "name": "Läge (rådata)"
       },

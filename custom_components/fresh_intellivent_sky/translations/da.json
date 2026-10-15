@@ -220,8 +220,53 @@
         "name": "Luftflow"
       },	  
       "mode": {
-        "name": "Tilstand"
+        "name": "Tilstand",
+        "state": {
+          "Off": "Slukket",
+          "Constant speed": "Konstant hastighed",
+          "Light": "Lys",
+          "Humidity": "Fugt",
+          "Timer": "Timer",
+          "VOC": "VOC",
+          "Automatic cycle": "Automatisk udluftning",
+          "Pause": "Pause",
+          "Boost": "Boost",
+          "Motor test": "Motortest",
+          "Humidity sinking": "Faldende luftfugtighed",
+          "Unknown": "Ukendt",
+          "Delayed start": "Forsinket start"
+        }
       },
+      "active_trigger": {
+        "name": "Aktiv udløser",
+        "state": {
+          "None": "Ingen",
+          "Humidity": "Fugt",
+          "Presence": "Lys",
+          "Timer": "Timer",
+          "VOC": "VOC",
+          "Automatic cycle": "Automatisk udluftning",
+          "Pause": "Pause",
+          "Boost": "Boost",
+          "Motor test": "Motortest",
+          "Humidity sinking": "Faldende luftfugtighed",
+          "Unknown": "Ukendt",
+          "Delayed start": "Forsinket start"
+        }
+      },
+      "motor_speed": {
+        "name": "Motorhastighedstype",
+        "state": {
+          "Off": "Slukket",
+          "Constant": "Konstant",
+          "Timer": "Timer",
+          "Humidity": "Fugt",
+          "Automatic cycles": "Automatisk udluftning",
+          "VOC": "VOC",
+          "Boost / Special": "Boost / Special",
+          "Unknown": "Ukendt"
+        }
+      },	  
       "mode_raw": {
         "name": "Rå tilstand"
       },
