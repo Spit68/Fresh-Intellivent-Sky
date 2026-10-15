@@ -4,5 +4,5 @@
     "homeassistant": "2026.1.0",
     "zip_release": true,
     "filename": "fresh_sky_ice.zip",
-    "country": ["DK", "SV", "GB", "US"]    
+    "country": ["DK", "SE", "GB", "US"]    
 }  
