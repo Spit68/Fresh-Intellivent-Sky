@@ -43,7 +43,9 @@ The entities available depend on the firmware version and whether the integratio
 | Temperature | Current temperature reported by the fan |
 | Current speed | Current fan speed in RPM |
 | Estimated airflow | Estimated airflow in m³/h based on the current fan speed and the configured duct size and front type |
-| Mode | Current operating mode |
+| Mode | Current operating mode, derived from the active trigger rather than the full raw mode byte |
+| Active Trigger | Trigger currently responsible for the fan operation, such as humidity, light or VOC |
+| Motor Speed Type | Motor speed mode decoded from the upper nibble of the raw mode byte |
 | Boost remaining time | Local countdown for an active Boost |
 | Pause remaining time | Local countdown for an active Pause |
 | Error | Error value reported by the fan as text |
