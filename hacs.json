@@ -1,10 +1,4 @@
 {
-  "name": "Fresh Intellivent Sky",
-  "homeassistant": "2026.1.0"
-}
-
-
-{
     "name": "Fresh Intellivent Sky",
     "render_readme": true,
     "homeassistant": "2026.1.0",
