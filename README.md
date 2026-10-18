@@ -1,3 +1,5 @@
+<a href="https://www.buymeacoffee.com/spit68" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+
 # Fresh Intellivent Sky/Ice for Home Assistant
 
 A standalone Home Assistant integration for **Fresh Intellivent SKY** and **Intellivent ICE** bathroom fans using Bluetooth Low Energy.
