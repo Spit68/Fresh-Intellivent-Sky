@@ -141,6 +141,8 @@ To migrate safely:
 
 ## Installation
 
+[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Spit68&repository=Fresh-Intellivent-Sky&category=integration)
+
 ### Manual install via HACS
 
 1. Open HACS in your Home Assistant instance.
