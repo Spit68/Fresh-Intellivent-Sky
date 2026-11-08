@@ -17,6 +17,7 @@ from homeassistant.helpers.update_coordinator import (
 if TYPE_CHECKING:
     from .fresh_intellivent import FreshIntelliVent
 
+from .helpers import entity_unique_id
 from .const import (
     CONSTANT_SPEED_UPDATE,
     DOMAIN,
@@ -125,7 +126,7 @@ class FreshIntelliventSkySwitch(
 
         name = f"{device.manufacturer} {device.name}"
 
-        self._attr_unique_id = f"{device.manufacturer}_{name}_{entity_description.key}"
+        self._attr_unique_id = entity_unique_id(device.address, entity_description.key)
         self._attr_entity_category = entity_category
         self._keys = keys
         self._attr_device_info = DeviceInfo(
@@ -226,7 +227,7 @@ class FreshIntelliventKeepConnectionSwitch(
 
         name = f"{device.manufacturer} {device.name}"
 
-        self._attr_unique_id = f"{device.manufacturer}_{name}_keep_connection"
+        self._attr_unique_id = entity_unique_id(device.address, "keep_connection")
         self._attr_device_info = DeviceInfo(
             connections={
                 (
@@ -279,7 +280,7 @@ class FreshIntelliventScheduledModeSwitch(
         self._mode = mode
         self._attr_translation_key = mode
         self._attr_icon = icon
-        self._attr_unique_id = f"{device.manufacturer}_{name}_{mode}"
+        self._attr_unique_id = entity_unique_id(device.address, mode)
         self._attr_device_info = DeviceInfo(
             connections={
                 (
@@ -329,7 +330,7 @@ class FreshIntelliventDebugLoggingSwitch(
 
         name = f"{device.manufacturer} {device.name}"
 
-        self._attr_unique_id = f"{device.manufacturer}_{name}_debug_logs"
+        self._attr_unique_id = entity_unique_id(device.address, "debug_logs")
         self._attr_device_info = DeviceInfo(
             connections={
                 (

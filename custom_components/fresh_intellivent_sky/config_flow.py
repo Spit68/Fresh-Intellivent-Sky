@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
+from collections import Counter
 from typing import Any
 
 import voluptuous as vol
@@ -55,7 +56,7 @@ class FreshIntelliventSkyDeviceUpdateError(Exception):
 class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Fresh Intellivent."""
 
-    VERSION = 1
+    VERSION = 2
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -170,8 +171,15 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
         if not self._discovered_devices:
             return self.async_abort(reason="no_devices_found")
 
+        name_counts = Counter(
+            discovery.name for discovery in self._discovered_devices.values()
+        )
         titles = {
-            address: get_name(discovery.device)
+            address: (
+                f"{discovery.name} ({address[-5:]})"
+                if name_counts[discovery.name] > 1
+                else discovery.name
+            )
             for (address, discovery) in self._discovered_devices.items()
         }
         return self.async_show_form(

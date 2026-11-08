@@ -30,6 +30,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.util import dt as dt_util
 
+from .helpers import entity_unique_id
 from .const import BOOST_REMAINING_KEY, DOMAIN, PAUSE_REMAINING_KEY
 
 if TYPE_CHECKING:
@@ -319,7 +320,7 @@ class FreshIntelliventSkySensor(
 
         name = f"{device.manufacturer} {device.name}"
 
-        self._attr_unique_id = f"{device.manufacturer}_{name}_{entity_description.key}"
+        self._attr_unique_id = entity_unique_id(device.address, entity_description.key)
         self._attr_entity_category = entity_category
         self._boost_deadline: float | None = None
         self._boost_remaining = 0

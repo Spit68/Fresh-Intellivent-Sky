@@ -11,6 +11,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -40,6 +42,7 @@ from .const import (
 )
 from .fetch_and_update import FetchAndUpdate
 from .fresh_intellivent import FreshIntelliVent
+from .helpers import entity_unique_id
 
 ALL_UPDATES = [
     BOOST_UPDATE,
@@ -76,6 +79,269 @@ SCHEDULE_CHECK_INTERVAL = 15
 _LOGGER = logging.getLogger(__name__)
 _DEBUG_LOGGER = logging.getLogger(f"{__name__}.device_debug")
 
+MIGRATION_ENTITY_KEYS = {
+    "sensor": {
+        "temperature",
+        "humidity_raw",
+        "voc_raw",
+        "light_raw",
+        "reference_raw",
+        "minimum_active",
+        "error",
+        "sw_version",
+        "hw_version",
+        "rssi",
+        "bluetooth_source",
+        "connection_status",
+        "last_successful_update",
+        "rpm",
+        "airflow",
+        "mode",
+        "active_trigger_name",
+        "motor_speed_name",
+        "mode_raw",
+        "boost_remaining",
+        "pause_remaining",
+        "error_status",
+    },
+    "number": {
+        "airing_minutes",
+        "airing_rpm",
+        "boost_minutes",
+        "boost_rpm",
+        "constant_speed_rpm",
+        "humidity_rpm",
+        "night_mode_max_rpm",
+        "pause_minutes",
+        "poll_interval",
+        "silent_hours_max_rpm",
+        "timer_and_light_rpm",
+        "timer_delay_minutes",
+        "timer_minutes",
+        "voc_rpm",
+    },
+    "select": {
+        "copy_from_device",
+        "copy_to_device",
+        "duct_size",
+        "front_type",
+        "humidity_detection",
+        "light_detection",
+        "voc_detection",
+    },
+    "switch": {
+        "constant_speed_enabled",
+        "humidity_detection_enabled",
+        "light_detection_enabled",
+        "voc_detection_enabled",
+        "keep_connection",
+        "debug_logs",
+        NIGHT_MODE,
+        SILENT_HOURS,
+    },
+    "button": {
+        "cancel_boost",
+        "cancel_pause",
+        "duplicate_settings",
+        "start_boost",
+        "start_pause",
+    },
+    "time": {
+        "night_mode_end_time",
+        "night_mode_start_time",
+        "silent_hours_end_time",
+        "silent_hours_start_time",
+    },
+}
+
+
+    
+def _get_legacy_entity_key(entity: er.RegistryEntry) -> str | None:
+    """Identify an entity key from its legacy name-based unique ID."""
+    keys = MIGRATION_ENTITY_KEYS.get(entity.domain, set())
+
+    for key in sorted(keys, key=len, reverse=True):
+        if entity.unique_id.endswith(f"_{key}"):
+            return key
+
+    return None    
+
+def _entity_belongs_to_device(
+    device_registry: dr.DeviceRegistry,
+    entity: er.RegistryEntry,
+    entry: ConfigEntry,
+) -> bool:
+    """Verify the entity's config entry and Bluetooth device."""
+    if entity.config_entry_id != entry.entry_id:
+        return False
+
+    if entity.device_id is None or entry.unique_id is None:
+        return False
+
+    device = device_registry.async_get(entity.device_id)
+    if device is None:
+        return False
+
+    if entry.entry_id not in device.config_entries:
+        return False
+
+    return any(
+        connection_type == "bluetooth"
+        and connection_address.lower() == entry.unique_id.lower()
+        for connection_type, connection_address in device.connections
+    )
+
+def _get_migration_entities(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+) -> list[er.RegistryEntry]:
+    """Find entities belonging to this SKY config entry."""
+    entity_registry = er.async_get(hass)
+    device_registry = dr.async_get(hass)
+
+    entities = er.async_entries_for_config_entry(
+        entity_registry,
+        entry.entry_id,
+    )
+
+    invalid_entities = []
+
+    for entity in entities:
+        if not _entity_belongs_to_device(
+            device_registry,
+            entity,
+            entry,
+        ):
+            invalid_entities.append(entity.entity_id)
+
+    if invalid_entities:
+        # The new unique ID is derived from the config entry's address,
+        # not from the entity's device, so this does not make the
+        # migration unsafe. Log it and carry on instead of blocking
+        # the whole integration from loading.
+        _LOGGER.warning(
+            "SKY %s: entities with missing or mismatched Bluetooth "
+            "device link (migrated by config entry anyway): %s",
+            entry.unique_id,
+            ", ".join(invalid_entities),
+        )
+
+    return entities
+    
+def _created_at_sort_key(entity: er.RegistryEntry) -> tuple:
+    """Sort key where the most recently created registry entry sorts last."""
+    created_at = getattr(entity, "created_at", None) or dt_util.utc_from_timestamp(0)
+    return (created_at, entity.entity_id)
+
+
+def _build_entity_migration_plan(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    entities: list[er.RegistryEntry],
+) -> list[tuple[str, str]] | None:
+    """Prepare entity unique ID changes without applying them.
+
+    Several legacy entities in one entry can map to the same new unique ID,
+    for example when a fan was renamed in the Fresh app and the old entities
+    were left behind in the registry. Keep one and skip the rest instead of
+    blocking the whole integration from loading.
+
+    The entity that already has the new unique ID wins, otherwise the most
+    recently created one (normally the one the fan is using now). Skipped
+    entities stay in the registry as unavailable and can be deleted by the
+    user afterwards.
+    """
+    if entry.unique_id is None:
+        return None
+
+    entity_registry = er.async_get(hass)
+    plan = []
+    candidates: dict[tuple[str, str, str], list[er.RegistryEntry]] = {}
+
+    for entity in entities:
+        key = _get_legacy_entity_key(entity)
+
+        if key is None:
+            _LOGGER.warning(
+                "Skipping SKY entity %s during migration: "
+                "unknown unique ID %s",
+                entity.entity_id,
+                entity.unique_id,
+            )
+            continue
+
+        new_unique_id = entity_unique_id(entry.unique_id, key)
+        target = (entity.platform, entity.domain, new_unique_id)
+        candidates.setdefault(target, []).append(entity)
+
+    for (platform, domain, new_unique_id), group in candidates.items():
+        winner = next(
+            (entity for entity in group if entity.unique_id == new_unique_id),
+            None,
+        )
+        if winner is None:
+            winner = max(group, key=_created_at_sort_key)
+
+        for skipped in group:
+            if skipped is not winner:
+                _LOGGER.warning(
+                    "Skipping SKY entity %s during migration: %s maps to the "
+                    "same unique ID %s and is kept instead. The skipped "
+                    "entity can be deleted.",
+                    skipped.entity_id,
+                    winner.entity_id,
+                    new_unique_id,
+                )
+
+        existing_entity_id = entity_registry.async_get_entity_id(
+            domain,
+            platform,
+            new_unique_id,
+        )
+
+        if existing_entity_id is not None and existing_entity_id != winner.entity_id:
+            _LOGGER.warning(
+                "Skipping SKY entity %s during migration: target unique ID "
+                "%s already belongs to %s",
+                winner.entity_id,
+                new_unique_id,
+                existing_entity_id,
+            )
+            continue
+
+        if winner.unique_id != new_unique_id:
+            plan.append((winner.entity_id, new_unique_id))
+
+    return plan
+
+
+def _apply_entity_migration_plan(
+    hass: HomeAssistant,
+    plan: list[tuple[str, str]],
+) -> bool:
+    """Apply entity unique ID changes and report failures."""
+    entity_registry = er.async_get(hass)
+
+    for entity_id, new_unique_id in plan:
+        try:
+            entity_registry.async_update_entity(
+                entity_id,
+                new_unique_id=new_unique_id,
+            )
+        except Exception:
+            _LOGGER.exception(
+                "Failed to migrate SKY entity %s to %s",
+                entity_id,
+                new_unique_id,
+            )
+            return False
+
+    _LOGGER.info(
+        "Migrated %d Fresh Intellivent SKY entity unique IDs",
+        len(plan),
+    )
+
+    return True   
 
 def _refresh_debug_logger_level(
     hass: HomeAssistant,
@@ -91,6 +357,38 @@ def _refresh_debug_logger_level(
     )
     _DEBUG_LOGGER.setLevel(logging.DEBUG if enabled else logging.WARNING)
 
+async def async_migrate_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+) -> bool:
+    """Migrate existing SKY entities to Bluetooth MAC-based unique IDs."""
+    if entry.version == 2:
+        return True
+
+    if entry.version != 1:
+        _LOGGER.error(
+            "Unsupported SKY config entry version: %s",
+            entry.version,
+        )
+        return False
+
+    entities = _get_migration_entities(hass, entry)
+
+    plan = _build_entity_migration_plan(hass, entry, entities)
+    if plan is None:
+        return False
+
+    if not _apply_entity_migration_plan(hass, plan):
+        return False
+
+    hass.config_entries.async_update_entry(entry, version=2)
+
+    _LOGGER.info(
+        "Successfully migrated SKY %s to config entry version 2",
+        entry.unique_id,
+    )
+
+    return True
 
 async def async_setup_entry(
     hass: HomeAssistant,

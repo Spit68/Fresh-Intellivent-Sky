@@ -14,7 +14,12 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
-from .helpers import DETECTION_HIGH, DETECTION_LOW, DETECTION_MEDIUM
+from .helpers import (
+    DETECTION_HIGH,
+    DETECTION_LOW,
+    DETECTION_MEDIUM,
+    entity_unique_id,
+)
 
 if TYPE_CHECKING:
     from .fresh_intellivent import FreshIntelliVent
@@ -150,7 +155,7 @@ class FreshIntelliventSkyCopySelect(
         name = f"{device.manufacturer} {device.name}"
 
         self._attr_unique_id = (
-            f"{device.manufacturer}_{name}_{entity_description.key}"
+            entity_unique_id(device.address, entity_description.key)
         )
         self._attr_device_info = DeviceInfo(
             connections={
@@ -165,6 +170,16 @@ class FreshIntelliventSkyCopySelect(
             hw_version=device.hw_version,
             sw_version=device.sw_version,
         )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Drop this entity from the shared copy-select list."""
+        entities = self.hass.data.get(DOMAIN, {}).get(
+            "copy_select_entities", []
+        )
+        if self in entities:
+            entities.remove(self)
+
+        await super().async_will_remove_from_hass()
 
     def _device_labels(self) -> dict[str, str]:
         """Return entry IDs mapped to unique visible device labels."""
@@ -255,7 +270,7 @@ class FreshIntelliventSkyInstallationSelect(
         name = f"{device.manufacturer} {device.name}"
 
         self._attr_unique_id = (
-            f"{device.manufacturer}_{name}_{entity_description.key}"
+            entity_unique_id(device.address, entity_description.key)
         )
 
         self._attr_device_info = DeviceInfo(
@@ -311,7 +326,7 @@ class FreshIntelliventSkySelect(
 
         name = f"{device.manufacturer} {device.name}"
 
-        self._attr_unique_id = f"{device.manufacturer}_{name}_{entity_description.key}"
+        self._attr_unique_id = entity_unique_id(device.address, entity_description.key)
         self._attr_entity_category = EntityCategory.CONFIG
         self._keys = keys
         self._attr_device_info = DeviceInfo(

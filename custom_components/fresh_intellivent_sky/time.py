@@ -18,6 +18,7 @@ from homeassistant.helpers.update_coordinator import (
 if TYPE_CHECKING:
     from .fresh_intellivent import FreshIntelliVent
 
+from .helpers import entity_unique_id
 from .const import (
     DOMAIN,
     END_TIME_KEY,
@@ -109,7 +110,7 @@ class FreshIntelliventScheduledModeTime(
         self._mode = mode
         self._time_key = time_key
         self._attr_unique_id = (
-            f"{device.manufacturer}_{name}_{entity_description.key}"
+            entity_unique_id(device.address, entity_description.key)
         )
         self._attr_device_info = DeviceInfo(
             connections={

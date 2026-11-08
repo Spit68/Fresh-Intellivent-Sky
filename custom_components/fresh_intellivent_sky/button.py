@@ -20,6 +20,7 @@ from homeassistant.helpers.update_coordinator import (
 if TYPE_CHECKING:
     from .fresh_intellivent import FreshIntelliVent
 
+from .helpers import entity_unique_id
 from .const import (
     BOOST_UPDATE,
     DELAY_KEY,
@@ -131,7 +132,7 @@ class FreshIntelliventSkyCopySettingsButton(
         name = f"{device.manufacturer} {device.name}"
 
         self._attr_unique_id = (
-            f"{device.manufacturer}_{name}_{entity_description.key}"
+            entity_unique_id(device.address, entity_description.key)
         )
         self._attr_device_info = DeviceInfo(
             connections={
@@ -186,7 +187,10 @@ class FreshIntelliventSkyCopySettingsButton(
         target = domain_data["devices"][target_entry_id]
 
         target.copy_in_progress = True
-        await self._copy_settings(source, target)
+        try:
+            await self._copy_settings(source, target)
+        finally:
+            target.copy_in_progress = False
 
     async def _copy_settings(
         self,
@@ -452,7 +456,7 @@ class FreshIntelliventSkyActionButton(
         name = f"{device.manufacturer} {device.name}"
 
         self._attr_unique_id = (
-            f"{device.manufacturer}_{name}_{entity_description.key}"
+            entity_unique_id(device.address, entity_description.key)
         )
         self._attr_device_info = DeviceInfo(
             connections={

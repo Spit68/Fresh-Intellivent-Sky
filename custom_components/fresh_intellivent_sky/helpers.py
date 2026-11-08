@@ -111,3 +111,8 @@ def to_bytearray(value: Union[bytes, bytearray, str]) -> bytearray:
     if isinstance(value, str):
         return bytearray.fromhex(value)
     raise TypeError("Wrong type, expected bytes, bytearray or str.")
+
+
+def entity_unique_id(address: str, key: str) -> str:
+    """Build a stable entity unique ID from the Bluetooth address."""
+    return f"{address.lower()}_{key}"

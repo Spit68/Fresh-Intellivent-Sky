@@ -23,6 +23,7 @@ from homeassistant.helpers.update_coordinator import (
 if TYPE_CHECKING:
     from .fresh_intellivent import FreshIntelliVent
 
+from .helpers import entity_unique_id
 from .const import (
     AIRING_MODE_UPDATE,
     BOOST_UPDATE,
@@ -288,7 +289,7 @@ class FreshIntelliventSkyNumber(
 
         name = f"{device.manufacturer} {device.name}"
 
-        self._attr_unique_id = f"{device.manufacturer}_{name}_{entity_description.key}"
+        self._attr_unique_id = entity_unique_id(device.address, entity_description.key)
         self._attr_entity_category = entity_category
         self._keys = keys
         self._attr_device_info = DeviceInfo(
