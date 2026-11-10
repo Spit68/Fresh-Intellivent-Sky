@@ -48,7 +48,7 @@ The entities available depend on the firmware version and whether the integratio
 | Current speed | Current fan speed in RPM |
 | Estimated airflow | Estimated airflow in m³/h based on the current fan speed and the configured duct size and front type |
 | Mode | Current operating mode, derived from the active trigger rather than the full raw mode byte |
-| Active Trigger | Trigger currently responsible for the fan operation, such as humidity, light or VOC |
+| Active Trigger | Trigger currently responsible for the fan operation, such as humidity, light or VOC. Shows None when no trigger is active, which is also the case while constant speed is running |
 | Motor Speed Type | Motor speed mode decoded from the upper nibble of the raw mode byte |
 | Boost remaining time | Local countdown for an active Boost |
 | Pause remaining time | Local countdown for an active Pause |
@@ -96,7 +96,7 @@ Additional diagnostic entities provide information about the fan, raw sensor dat
 | Humidity control | Enable/disable, sensitivity and RPM |
 | Air quality/VOC control | Enable/disable, sensitivity and RPM where supported |
 | Light control | Enable/disable, sensitivity, RPM and after-run time |
-| Airing | Enable/disable, duration and RPM |
+| Airing | Enable/disable, interval, duration and RPM |
 | External input | Delay time |
 | Boost | Start, cancel, duration and RPM |
 | Pause | Start, cancel and duration |
@@ -180,8 +180,6 @@ Select the detected fan and choose how the authentication key should be configur
 ## Renaming the fan
 
 The integration name shown under **Settings → Devices & services** follows the fan's name in the Fresh app, so you can rename the fan from the mobile app. A name you have chosen yourself in Home Assistant, for the integration or for the device, is not overwritten. Entity IDs are not affected by renaming.
-
-## Polling and Keep Connection
 
 ## Polling and Keep Connection
 
