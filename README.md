@@ -13,14 +13,16 @@ This integration combines the Home Assistant integration from `freshintelliventH
 
 - Native Home Assistant Bluetooth discovery
 - Support for Fresh Intellivent SKY and Intellivent ICE
-- Authentication key setup through the Home Assistant UI
+- Authentication key setup through the Home Assistant UI, with verification of manually entered keys
 - Read-only installation without an authentication key
 - Configurable polling interval
 - Optional persistent BLE connection for faster updates
 - Automatic reconnect and retry when a persistent connection fails
 - Support for different firmware generations
+- Integration title follows the fan's name in the Fresh app
 - Batched setting writes with readback
 - Boost and Pause controls with local countdown sensors
+- Airing control with an on/off switch and adjustable interval and duration
 - Home Assistant-managed Night Mode and Silent Hours
 - Scheduled maximum RPM limits with automatic restoration of normal settings
 - Copy settings between two supported devices
@@ -174,6 +176,12 @@ To migrate safely:
 Select the detected fan and choose how the authentication key should be configured.
 
 ![Configuration Window](add_integration/setup2.png)
+
+## Renaming the fan
+
+The integration name shown under **Settings → Devices & services** follows the fan's name in the Fresh app, so you can rename the fan from the mobile app. A name you have chosen yourself in Home Assistant, for the integration or for the device, is not overwritten. Entity IDs are not affected by renaming.
+
+## Polling and Keep Connection
 
 ## Polling and Keep Connection
 
