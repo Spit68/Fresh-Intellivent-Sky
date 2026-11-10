@@ -119,7 +119,7 @@ The integration reads the hardware and firmware versions directly from the fan a
 During setup, Home Assistant offers three authentication options:
 
 - **Fetch key from fan** — place the fan in pairing mode and let the integration read the key.
-- **Enter key manually** — enter an existing eight-character authentication key.
+- **Enter key manually** — enter an existing eight-character authentication key. The key is verified against the fan before setup is completed, and you can try again if it is rejected.
 - **No authentication (read-only)** — expose sensor values without settings or action controls.
 
 To place the fan in pairing mode, press and hold the power and Wi-Fi buttons for approximately eight seconds until the fan starts flashing. Then select the option to fetch the key.
@@ -187,7 +187,7 @@ The normal polling interval can be configured from the device settings.
 
 When **Keep Connection** is disabled, the integration connects to the fan when required and disconnects after polling, writing, and reading settings.
 
-When **Keep Connection** is enabled, the BLE connection is kept open and live values are refreshed every second. Persistent mode can provide faster updates, but it may use more Bluetooth resources.
+When **Keep Connection** is enabled, the BLE connection is kept open and live values are refreshed every second. Persistent mode can provide faster updates, but it may use more Bluetooth resources. While the connection is kept open, the Fresh mobile app cannot connect to the fan at the same time.
 
 ## Night Mode and Silent Hours
 
@@ -211,6 +211,17 @@ Schedules, enabled states, RPM limits, and saved normal RPM values are stored by
 > Night Mode and Silent Hours are integration features and are not stored in the fan itself. Home Assistant must be running and able to reach the fan through Bluetooth when settings need to be changed. If Home Assistant was unavailable at a scheduled transition, the integration evaluates the current schedule and applies or restores the appropriate settings when it starts again.
 
 Manually changing an RPM setting while a scheduled mode is active overrides that setting. When the final active schedule ends, the RPM values saved before the scheduled period are restored.
+
+## Airing
+
+The fan airs the room automatically after it has been inactive for a set time. The integration provides these controls:
+
+- **Airing** — switch that turns automatic airing on or off.
+- **Airing Interval** — how many hours of inactivity must pass before airing starts, from 1 to 26 hours. The factory setting is 26 hours.
+- **Airing Duration** — how long airing runs, from 15 to 120 minutes. The fan does not run shorter than 15 minutes, so lower values are raised to 15.
+- **Airing Speed** — fan speed during airing, in RPM.
+
+The interval is counted from the fan's last activity. Changing the airing settings does not restart the interval.
 
 ## Copy settings between devices
 
