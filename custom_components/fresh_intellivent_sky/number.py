@@ -28,6 +28,7 @@ from .const import (
     AIRING_MODE_UPDATE,
     BOOST_UPDATE,
     CONSTANT_SPEED_UPDATE,
+    CYCLE_PERIOD_KEY,    
     DELAY_KEY,
     DETECTION_KEY,
     DOMAIN,
@@ -142,7 +143,7 @@ async def async_setup_entry(
                 NumberEntityDescription(
                     key="airing_minutes",
                     translation_key="airing_minutes",
-                    native_min_value=5,
+                    native_min_value=15,
                     native_max_value=120,
                     native_step=1,
                     native_unit_of_measurement=UnitOfTime.MINUTES,
@@ -150,6 +151,20 @@ async def async_setup_entry(
                 entity_category=EntityCategory.CONFIG,
                 keys=["airing", "minutes"],
             ),
+            FreshIntelliventSkyNumber(
+                coordinator,
+                coordinator.data,
+                NumberEntityDescription(
+                    key="airing_cycle_period",
+                    translation_key="airing_cycle_period",
+                    native_min_value=1,
+                    native_max_value=26,
+                    native_step=1,
+                    native_unit_of_measurement=UnitOfTime.HOURS,
+                ),
+                entity_category=EntityCategory.CONFIG,
+                keys=["airing", CYCLE_PERIOD_KEY],
+            ),            
             FreshIntelliventSkyNumber(
                 coordinator,
                 coordinator.data,
@@ -441,6 +456,13 @@ class FreshIntelliventSkyNumber(
                 or self.coordinator.data.modes["airing"]
             )
             airing[MINUTES_KEY] = int(value)
+            self.coordinator.pending_updates[AIRING_MODE_UPDATE] = airing
+        elif key == "airing_cycle_period":
+            airing = deepcopy(
+                self.coordinator.pending_updates.get(AIRING_MODE_UPDATE)
+                or self.coordinator.data.modes["airing"]
+            )
+            airing[CYCLE_PERIOD_KEY] = int(value)
             self.coordinator.pending_updates[AIRING_MODE_UPDATE] = airing
         elif key == "timer_and_light_rpm":
             timer = deepcopy(

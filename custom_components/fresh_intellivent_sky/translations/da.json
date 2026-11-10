@@ -36,14 +36,16 @@
     "error": {
       "auth_code_only_zero": "Ventilatoren returnerede en godkendelseskode, der kun indeholdt nuller. Kontroller, at ventilatoren er i parringstilstand.",
       "auth_code_empty": "Ventilatoren returnerede en tom godkendelseskode. Kontroller, at ventilatoren er i parringstilstand og inden for Bluetooth-rækkevidde.",
-      "invalid_auth_key": "Ugyldig godkendelsesnøgle."
+      "invalid_auth_key": "Ugyldig godkendelsesnøgle.",
+      "auth_rejected": "Ventilatoren afviste nøglen. Vælg igen: hent nøglen fra ventilatoren, indtast en anden nøgle eller fortsæt uden godkendelse (kun læsning).",
+      "cannot_connect": "Kunne ikke oprette forbindelse til ventilatoren, så nøglen kunne ikke tjekkes. Kontroller, at ventilatoren har strøm og er inden for rækkevidde, luk mobilappen hvis den er åben, og prøv igen."
     }
   },
   "exceptions": {
     "copy_same_device": {
       "message": "Kilde og destination må ikke være den samme Fresh Intellivent SKY."
     },
-	"copy_devices_not_selected": {
+    "copy_devices_not_selected": {
       "message": "Vælg både en kilde og en destination."
     }
   },
@@ -63,7 +65,7 @@
       },
       "duplicate_settings": {
         "name": "Dupliker indstillinger"
-      }	  
+      }
     },
     "number": {
       "humidity_rpm": {
@@ -74,19 +76,22 @@
       },
       "humidity_voc_rpm": {
         "name": "Fugt- og luftkvalitets hastighed"
-      },	  
+      },
       "constant_speed_rpm": {
         "name": "Konstant hastighed"
       },
       "airing_rpm": {
-        "name": "Udluftning hastighed"
+        "name": "Udluftnings hastighed"
       },
       "boost_rpm": {
         "name": "Boost hastighed"
       },
       "airing_minutes": {
-        "name": "Varighed for udluftning"
+        "name": "Udluftnings varighed"
       },
+      "airing_cycle_period": {
+        "name": "Udluftnings interval"
+      },	  
       "boost_minutes": {
         "name": "Boost varighed"
       },
@@ -97,7 +102,7 @@
         "name": "Lys styring hastighed"
       },
       "timer_minutes": {
-        "name": "Efterløbstid for lys"
+        "name": "Lys efterløbstid"
       },
       "poll_interval": {
         "name": "Opdaterings interval"
@@ -106,10 +111,10 @@
         "name": "Forsinkelse for ekstern indgang"
       },
       "night_mode_max_rpm": {
-        "name": "Maks. hastighed for nattilstand"
+        "name": "Nattilstand maks hastighed"
       },
       "silent_hours_max_rpm": {
-        "name": "Maks. hastighed for stille timer"
+        "name": "Stille periode maks hastighed"
       }
     },
     "select": {
@@ -142,7 +147,7 @@
       },
       "copy_to_device": {
         "name": "Kopier til enhed"
-      },	  
+      },
       "duct_size": {
         "name": "Kanaldimension",
         "state": {
@@ -299,22 +304,25 @@
       "night_mode": {
         "name": "Nattilstand"
       },
+      "airing_enabled": {
+        "name": "Udluftning styring"
+      },  
       "silent_hours": {
-        "name": "Stille timer"
+        "name": "Stille periode"
       }
     },
     "time": {
       "night_mode_start_time": {
-        "name": "Starttid for nattilstand"
+        "name": "Nattilstand starttid"
       },
       "night_mode_end_time": {
-        "name": "Sluttid for nattilstand"
+        "name": "Nattilstand sluttid"
       },
       "silent_hours_start_time": {
-        "name": "Starttid for stille timer"
+        "name": "Stille periode starttid"
       },
       "silent_hours_end_time": {
-        "name": "Sluttid for stille timer"
+        "name": "Stille periode sluttid"
       }
     }
   }

@@ -4,6 +4,7 @@ from typing import Any, Union
 
 from . import helpers as h
 
+
 class SkyModeParser:
     """Parser for Fresh Intellivent mode settings."""
 
@@ -15,21 +16,33 @@ class SkyModeParser:
             raise ValueError(f"Length need to be exactly 5, was {len(value)}.")
 
         unpacked = unpack("<?2BH", value)
-
+        
         enabled = bool(unpacked[0])
         minutes = h.validated_time(int(unpacked[2]))
         rpm = int(unpacked[3])
 
         return {
             "enabled": enabled,
+            "cycle_period": int(unpacked[1]),
             "minutes": minutes,
             "rpm": rpm,
         }
 
-    def airing_write(self, enabled: bool, minutes: int, rpm: int) -> bytes:
+    def airing_write(
+        self, enabled: bool, minutes: int, rpm: int, cycle_period: int = 26
+    ) -> bytes:
         """Write airing mode settings to the device."""
+        cycle_period = int(cycle_period)
+        if not 1 <= cycle_period <= 26:
+            raise ValueError(
+                f"Airing cycle period must be between 1 and 26 hours, was {cycle_period}."
+            )
         return pack(
-            "<?2BH", enabled, 26, h.validated_time(minutes), h.validated_rpm(rpm)
+            "<?2BH",
+            bool(enabled),
+            cycle_period,
+            h.validated_time(minutes),
+            h.validated_rpm(rpm),
         )
 
     def boost_read(self, value: Union[bytes, bytearray]) -> dict[str, Union[bool, int]]:

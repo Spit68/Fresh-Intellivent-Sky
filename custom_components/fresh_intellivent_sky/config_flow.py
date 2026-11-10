@@ -1,6 +1,7 @@
 """Config flow for Fresh Intellivent integration."""
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 import logging
 from collections import Counter
@@ -16,11 +17,12 @@ from homeassistant.components.bluetooth import (
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.data_entry_flow import FlowResult
-from .fresh_intellivent import FreshIntelliVent
+from .fresh_intellivent import FreshIntelliVent, FreshIntelliventAuthError
 from .helpers import validated_authentication_code
 
 from .const import (
     CONF_AUTH_KEY,
+    CONF_AUTO_TITLE,    
     DOMAIN,
     NAME,
     CONF_MODEL,
@@ -29,6 +31,8 @@ from .const import (
     NO_AUTH,
     AUTH_CODE_ONLY_ZERO,
     AUTH_CODE_EMPTY,
+    AUTH_REJECTED,
+    CANNOT_CONNECT,
     TIMEOUT,
 )
 
@@ -98,6 +102,26 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return client
 
+    async def _refresh_device_name(self) -> None:
+        """Read the name again; keep the old name if the fan cannot be reached."""
+        device = self._discovered_device.device
+        try:
+            async with asyncio.timeout(15):
+                await device.connect(timeout=TIMEOUT)
+                await device.fetch_device_information()
+        except Exception as err:
+            _LOGGER.debug(
+                "Could not re-read name from %s, keeping old name: %s",
+                device.address,
+                err,
+            )
+        else:
+            name = get_name(device)
+            self._discovered_device.name = name
+            self.context["title_placeholders"] = {"name": name}
+        finally:
+            await device.disconnect()
+
     async def async_step_bluetooth(
         self, discovery_info: BluetoothServiceInfo
     ) -> FlowResult:
@@ -129,6 +153,7 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
                 description_placeholders=self.context["title_placeholders"],
             )
 
+        await self._refresh_device_name()
         return await self.async_step_auth_method()
 
     async def async_step_user(
@@ -210,9 +235,26 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_create_entry(
             title=self.context["title_placeholders"]["name"],
             data={
+                CONF_AUTO_TITLE: self.context["title_placeholders"]["name"],
                 CONF_MODEL: self._discovered_device.discovery_info.name,
             },
         )
+
+    async def _check_auth_key(self, auth_key: str) -> str | None:
+        """Try the key on the fan; return an error code, or None if accepted."""
+        device = self._discovered_device.device
+        try:
+            async with asyncio.timeout(20):
+                await device.connect(timeout=TIMEOUT)
+                await device.authenticate(authentication_code=auth_key, verify=True)
+        except FreshIntelliventAuthError:
+            return AUTH_REJECTED
+        except Exception as err:
+            _LOGGER.debug("Could not check the key on %s: %s", device.address, err)
+            return CANNOT_CONNECT
+        finally:
+            await device.disconnect()
+        return None
 
     async def async_step_auth_manual(
         self, user_input: dict[str, Any] | None = None
@@ -228,10 +270,15 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
             except (TypeError, ValueError):
                 errors["base"] = "invalid_auth_key"
             else:
+                if auth_key:
+                    error = await self._check_auth_key(auth_key)
+                    if error is not None:
+                        return await self.async_step_auth_method(error=error)
                 return self.async_create_entry(
                     title=self.context["title_placeholders"]["name"],
                     data={
                         CONF_AUTH_KEY: auth_key,
+                        CONF_AUTO_TITLE: self.context["title_placeholders"]["name"],
                         CONF_MODEL: self._discovered_device.discovery_info.name,
                     },
                 )
@@ -268,6 +315,7 @@ class FreshIntelliventSkyConfigFlow(ConfigFlow, domain=DOMAIN):
                 title=self.context["title_placeholders"]["name"],
                 data={
                     CONF_AUTH_KEY: code.hex(),
+                    CONF_AUTO_TITLE: self.context["title_placeholders"]["name"],
                     CONF_MODEL: self._discovered_device.discovery_info.name,
                 },
             )

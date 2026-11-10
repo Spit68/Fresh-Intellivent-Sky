@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 from .helpers import entity_unique_id
 from .const import (
+    AIRING_MODE_UPDATE,
     CONSTANT_SPEED_UPDATE,
     DOMAIN,
     ENABLED_KEY,
@@ -81,6 +82,16 @@ async def async_setup_entry(
                 entity_category=EntityCategory.CONFIG,
                 keys=["light_and_voc", "voc", ENABLED_KEY],
             ),
+            FreshIntelliventSkySwitch(
+                coordinator,
+                coordinator.data,
+                SwitchEntityDescription(
+                    key="airing_enabled",
+                    translation_key="airing_enabled",
+                ),
+                entity_category=EntityCategory.CONFIG,
+                keys=["airing", ENABLED_KEY],
+            ),            
             FreshIntelliventKeepConnectionSwitch(
                 coordinator,
                 coordinator.data,
@@ -182,6 +193,14 @@ class FreshIntelliventSkySwitch(
             )
             humidity[ENABLED_KEY] = new_value
             self.coordinator.pending_updates[HUMIDITY_MODE_UPDATE] = humidity
+
+        elif key == "airing_enabled":
+            airing = deepcopy(
+                self.coordinator.pending_updates.get(AIRING_MODE_UPDATE)
+                or self.coordinator.data.modes["airing"]
+            )
+            airing[ENABLED_KEY] = new_value
+            self.coordinator.pending_updates[AIRING_MODE_UPDATE] = airing
 
         else:
             pending = deepcopy(

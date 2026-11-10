@@ -11,7 +11,13 @@
       "connectable": true,
       "local_name": "Intellivent SKY",
       "service_uuid": "0000180a-0000-1000-8000-00805f9b34fb"
-    }],
+    },
+    {
+      "connectable": true,
+      "local_name": "Intellivent ICE",
+      "service_uuid": "0000180a-0000-1000-8000-00805f9b34fb"
+    }
+  ],
   "issue_tracker": "https://github.com/Spit68/Fresh-Intellivent-Sky/issues",
-  "version": "0.8.2"
+  "version": "0.8.3"
 }

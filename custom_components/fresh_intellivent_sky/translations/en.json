@@ -36,7 +36,9 @@
     "error": {
       "auth_code_only_zero": "The fan returned an authentication code containing only zeros. Check that the fan is in pairing mode.",
       "auth_code_empty": "The fan returned an empty authentication code. Check that the fan is in pairing mode and within Bluetooth range.",
-      "invalid_auth_key": "Invalid authentication key."
+      "invalid_auth_key": "Invalid authentication key.",
+      "auth_rejected": "The fan rejected the key. Choose again: fetch the key from the fan, enter another key, or continue without authentication (read-only).",
+      "cannot_connect": "Could not connect to the fan, so the key could not be checked. Check that the fan has power and is within range, close the mobile app if it is open, and try again."
     }
   },
   "exceptions": {
@@ -87,6 +89,9 @@
       "airing_minutes": {
         "name": "Airing Duration"
       },
+      "airing_cycle_period": {
+        "name": "Airing Interval"
+      },	  
       "boost_minutes": {
         "name": "Boost Duration"
       },
@@ -299,6 +304,9 @@
       "night_mode": {
         "name": "Night Mode"
       },
+      "airing_enabled": {
+        "name": "Airing"
+      },	  
       "silent_hours": {
         "name": "Silent Hours"
       }

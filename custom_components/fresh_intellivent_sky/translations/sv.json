@@ -36,7 +36,9 @@
     "error": {
       "auth_code_only_zero": "Fläkten returnerade en autentiseringsnyckel som enbart innehåller nollor. Kontrollera att fläkten är i parningsläge.",
       "auth_code_empty": "Fläkten returnerade en tom autentiseringsnyckel. Kontrollera att fläkten är i parningsläge och inom bluetooth-räckvidd.",
-      "invalid_auth_key": "Ogiltig autentiseringsnyckel."
+      "invalid_auth_key": "Ogiltig autentiseringsnyckel.",
+      "auth_rejected": "Fläkten avvisade nyckeln. Välj igen: hämta nyckeln från fläkten, ange en annan nyckel eller fortsätt utan autentisering (endast läsning).",
+      "cannot_connect": "Kunde inte ansluta till fläkten, så nyckeln kunde inte kontrolleras. Kontrollera att fläkten har ström och är inom räckvidd, stäng mobilappen om den är öppen och försök igen."
     }
   },
   "exceptions": {
@@ -86,6 +88,9 @@
       },
       "airing_minutes": {
         "name": "Vädring - Tid"
+      },
+      "airing_cycle_period": {
+        "name": "Vädring - Intervall"
       },
       "boost_minutes": {
         "name": "Boost - Tid"
@@ -299,6 +304,9 @@
       "night_mode": {
         "name": "Nattläge"
       },
+      "airing_enabled": {
+        "name": "Vädring"
+      },	  
       "silent_hours": {
         "name": "Tyst läge"
       }

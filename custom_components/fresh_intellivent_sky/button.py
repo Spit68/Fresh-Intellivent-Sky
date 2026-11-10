@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 from .helpers import entity_unique_id
 from .const import (
     BOOST_UPDATE,
+    CYCLE_PERIOD_KEY,    
     DELAY_KEY,
     DETECTION_KEY,
     DOMAIN,
@@ -243,6 +244,7 @@ class FreshIntelliventSkyCopySettingsButton(
                     enabled=bool(airing[ENABLED_KEY]),
                     minutes=int(airing[MINUTES_KEY]),
                     rpm=int(airing[RPM_KEY]),
+                    cycle_period=airing.get(CYCLE_PERIOD_KEY),
                 )
                 await asyncio.sleep(0.1)
 
@@ -351,6 +353,11 @@ class FreshIntelliventSkyCopySettingsButton(
                 int(destination_modes["airing"][RPM_KEY]),
                 int(airing[RPM_KEY]),
             ),
+            (
+                "airing cycle period",
+                int(destination_modes["airing"][CYCLE_PERIOD_KEY]),
+                int(airing[CYCLE_PERIOD_KEY]),
+            ),            
             (
                 "humidity enabled",
                 bool(destination_modes["humidity"][ENABLED_KEY]),

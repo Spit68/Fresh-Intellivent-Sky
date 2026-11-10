@@ -11,6 +11,7 @@ from .const import (
     AIRING_MODE_UPDATE,
     BOOST_UPDATE,
     CONSTANT_SPEED_UPDATE,
+    CYCLE_PERIOD_KEY,    
     DELAY_KEY,
     DETECTION_KEY,
     ENABLED_KEY,
@@ -163,6 +164,7 @@ class FetchAndUpdate:
             enabled=bool(airing_mode[ENABLED_KEY]),
             minutes=int(airing_mode[MINUTES_KEY]),
             rpm=int(airing_mode[RPM_KEY]),
+            cycle_period=airing_mode.get(CYCLE_PERIOD_KEY),
         )
         self._clear_pending_if_written(AIRING_MODE_UPDATE, airing_mode)
         return True

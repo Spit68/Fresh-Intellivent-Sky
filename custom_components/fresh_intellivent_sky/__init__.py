@@ -22,6 +22,7 @@ from .const import (
     AIRING_MODE_UPDATE,
     BOOST_UPDATE,
     CONF_AUTH_KEY,
+    CONF_AUTO_TITLE,    
     CONF_MODEL,
     CONSTANT_SPEED_UPDATE,
     DOMAIN,
@@ -543,6 +544,45 @@ async def async_setup_entry(
                 coordinator.old_software_version = False
                 _LOGGER.warning("Could not parse software version: %s", sw)
 
+    async def _async_sync_entry_title() -> None:
+        """Keep the entry title in step with the fan's own name.
+
+        The title is only changed while it is still the one we set ourselves,
+        so a title the user chose is never overwritten. Never fails an update.
+        """
+        try:
+            await client.fetch_device_name()
+
+            manufacturer = getattr(client, "manufacturer", None)
+            name = getattr(client, "name", None)
+            if not manufacturer or not name:
+                return
+
+            new_title = f"{manufacturer} {name}"
+            auto_title = entry.data.get(CONF_AUTO_TITLE)
+
+            if auto_title is None:
+                if entry.title == new_title:
+                    hass.config_entries.async_update_entry(
+                        entry,
+                        data={**entry.data, CONF_AUTO_TITLE: new_title},
+                    )
+                return
+
+            if entry.title != auto_title:
+                return
+
+            if new_title == auto_title:
+                return
+
+            hass.config_entries.async_update_entry(
+                entry,
+                title=new_title,
+                data={**entry.data, CONF_AUTO_TITLE: new_title},
+            )
+        except Exception as err:
+            _LOGGER.debug("Could not sync entry title: %s", err)
+
     async def _run_update() -> FreshIntelliVent:
         """Fetch live data, apply pending writes, and refresh settings."""
         pending_write = any(
@@ -559,6 +599,7 @@ async def async_setup_entry(
         coordinator.error_status = error_status        
         coordinator.rssi = client.rssi
         coordinator.bluetooth_source = client.bluetooth_source
+        await _async_sync_entry_title()
 
         if coordinator.debug_logging:
             sensors = client.sensors

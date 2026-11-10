@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any, Union
 from uuid import UUID
 
@@ -15,6 +16,9 @@ from . import characteristics
 from . import helpers as h
 from .parser import SkyModeParser
 from .sky_sensors import SkySensors
+
+_LOGGER = logging.getLogger(__name__)
+
 
 class FreshIntelliVent:
     """Fresh Intellivent device handler."""
@@ -104,13 +108,30 @@ class FreshIntelliVent:
             self._client = None
 
     async def authenticate(
-        self, authentication_code: Union[bytes, bytearray, str]
+        self,
+        authentication_code: Union[bytes, bytearray, str],
+        verify: bool = False,
     ) -> None:
-        """Authenticate with the device."""
+        """Authenticate with the device; optionally check the key was accepted."""
         await self._write_characteristic(
             uuid=characteristics.AUTH, data=h.to_bytearray(authentication_code)
         )
         await asyncio.sleep(1)
+
+        if not verify:
+            return
+
+        try:
+            confirmation = await self._read_characteristics(
+                uuid=characteristics.AUTH_CONFIRMATION
+            )
+        except FreshIntelliventError:
+            # The fan gave no confirmation (e.g. older firmware): behave as before.
+            _LOGGER.debug("Could not read authentication confirmation")
+            return
+
+        if not confirmation or confirmation[0] != 1:
+            raise FreshIntelliventAuthError("The fan rejected the authentication key")
 
     async def fetch_authentication_code(self) -> Union[bytes, bytearray]:
         """Fetch the authentication code from the device."""
@@ -148,6 +169,16 @@ class FreshIntelliVent:
             raise TimeoutError("Timeout on write") from exc
         except BleakError as exc:
             raise FreshIntelliventError("Failed to write") from exc
+
+    async def fetch_device_name(self) -> None:
+        """Read only the device name from the device."""
+        if self._client is None:
+            raise FreshIntelliventError("Not connected")
+
+        name = await self._client.read_gatt_char(
+            char_specifier=characteristics.DEVICE_NAME
+        )
+        self.name = name.decode("utf-8").replace("\00", "").replace("\0", "")
 
     async def fetch_device_information(self) -> None:
         """Fetch device information from the device."""
@@ -318,12 +349,27 @@ class FreshIntelliVent:
         self.modes["airing"] = airing
         return airing
 
-    async def update_airing(self, enabled: bool, minutes: int, rpm: int) -> None:
+    async def update_airing(
+        self,
+        enabled: bool,
+        minutes: int,
+        rpm: int,
+        cycle_period: Union[int, None] = None,
+    ) -> None:
         """Update airing settings on the device."""
-        value = self.parser.airing_write(enabled=enabled, minutes=minutes, rpm=rpm)
+        if cycle_period is None:
+            cycle_period = self.modes.get("airing", {}).get("cycle_period", 26)
+
+        value = self.parser.airing_write(
+            enabled=enabled,
+            minutes=minutes,
+            rpm=rpm,
+            cycle_period=cycle_period,
+        )
         await self._write_characteristic(characteristics.AIRING, value)
         self.modes["airing"] = {
             "enabled": enabled,
+            "cycle_period": int(cycle_period),
             "minutes": minutes,
             "rpm": rpm,
         }
@@ -388,3 +434,6 @@ class FreshIntelliVent:
 
 class FreshIntelliventError(Exception):
     """Base exception for Fresh Intellivent errors."""
+
+class FreshIntelliventAuthError(FreshIntelliventError):
+    """Raised when the fan rejects the authentication key."""
