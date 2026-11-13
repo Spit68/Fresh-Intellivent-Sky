@@ -121,7 +121,10 @@ class FetchAndUpdate:
         await self._client.fetch_humidity()
         await self._client.fetch_light_and_voc()
         await self._client.fetch_timer()
-        if not self._coordinator.old_software_version:
+        if (
+            self._coordinator.auth_key is not None
+            and not self._coordinator.old_software_version
+        ):
             await self._client.fetch_voc()
         await self._client.fetch_boost()
 
