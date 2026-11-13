@@ -1097,9 +1097,15 @@ async def async_unload_entry(
                 err,
             )
 
+    platforms = (
+        READ_ONLY_PLATFORMS
+        if entry.data.get(CONF_AUTH_KEY) is None
+        else AUTHENTICATED_PLATFORMS
+    )
+
     if unload_ok := await hass.config_entries.async_unload_platforms(
         entry,
-        AUTHENTICATED_PLATFORMS,
+        platforms,
     ):
         hass.data[DOMAIN]["devices"].pop(entry.entry_id, None)
         _refresh_debug_logger_level(hass)
